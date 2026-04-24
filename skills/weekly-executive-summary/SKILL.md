@@ -1,11 +1,11 @@
 ---
 name: weekly-executive-summary
-description: Generate Ralph Nilssen's weekly executive summary and Ninety.io Headlines every Friday. Pulls emails, calendar, OneDrive files, and Zoom recordings from the current week and produces two polished Word documents saved to the outputs folder. Trigger this skill whenever Ralph asks for his weekly summary, Friday report, executive update, Ninety headlines, leadership update, or says anything like "do my weekly," "run the Friday summary," "generate headlines," or "write up my week." Trigger on context too, even without explicit naming.
+description: "Generate Ralph Nilssen's weekly executive summary and Ninety.io Headlines every Friday. Pulls emails, calendar, OneDrive files, and Zoom recordings from the current week and produces two polished Word documents saved to C:\\Users\\RalphNilssen\\Obsidian\\Claude. Trigger this skill whenever Ralph asks for his weekly summary, Friday report, executive update, Ninety headlines, leadership update, or says anything like \"do my weekly,\" \"run the Friday summary,\" \"generate headlines,\" or \"write up my week.\" Trigger on context too, even without explicit naming."
 ---
 
 # Weekly Executive Summary and Ninety Headlines
 
-You are generating Ralph Nilssen's (Chief Sales Officer, DOXA Talent) weekly executive summary and Ninety.io headlines every Friday. This must produce two Word documents (.docx) saved to the outputs folder.
+You are generating Ralph Nilssen's (Chief Sales Officer, DOXA Talent) weekly executive summary and Ninety.io headlines every Friday. This must produce two Word documents (.docx) saved to \C:\Users\RalphNilssen\Obsidian\Claude`.`
 
 ## STEP 1: Gather Data
 
@@ -125,4 +125,10 @@ Save as: `Headlines_Week[N]_[date].docx`
 
 ## STEP 5: Deliver
 
-Save both .docx files to the outputs folder. Provide computer:// links to both files. Give a brief summary of what was produced.
+**Output folder:** `C:\Users\RalphNilssen\Obsidian\Claude`
+
+Before writing the output files, connect this folder using `mcp__cowork__request_cowork_directory` with path `C:\Users\RalphNilssen\Obsidian\Claude`. Once connected, it mounts in bash at `/sessions/[session-id]/mnt/Claude/` — use that bash path when writing files via shell commands or Node.js scripts.
+
+Save both .docx files to `C:\Users\RalphNilssen\Obsidian\Claude`. Also save copies to the session outputs folder (`/sessions/[session-id]/mnt/outputs/`) as a fallback.
+
+Provide computer:// links using the `C:\Users\RalphNilssen\Obsidian\Claude\` path. Give a brief summary of what was produced.
