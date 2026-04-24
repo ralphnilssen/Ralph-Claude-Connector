@@ -38,17 +38,27 @@ Use the Zoom MCP to capture meeting content that the email and calendar pulls wi
 3. For any meeting that looks material (title mentions a client/deal, participants include leadership or external stakeholders, or it overlaps with a Top 10 candidate), pull the summary via `get_meeting_assets`. Use the AI summary, not the raw transcript. If a summary is unavailable and the meeting clearly matters, retrieve the transcript via `get_file_content` and extract key decisions and action items.
 4. Do not dump raw transcripts into either output document. Zoom content is input for prioritization and context, not a standalone section.
 
+### Zoom Notes
+
+Zoom Notes are the AI Companion meeting notes tied to Ralph's calls. They contain decisions, action items, and discussion context that often never appear in email or calendar data. Pull and read every note from the week.
+
+1. Call `search_zoom` with `search_entities: [{entity_type: "zoom_doc", filters: {doc_view: "notes"}}]` and `page_size: 100`. The API does not accept date filters on `zoom_doc`, so retrieve the full set and filter client-side by `create_time` to the window from Saturday 12:00 AM of the prior weekend through Friday 3:00 PM of the current week. Use UTC for the comparison.
+2. For every note inside the window, call `get_file_content` with the `file_id` to retrieve the full markdown body. This applies to notes with generic titles (e.g., "Ralph Nilssen's notes") as well, since title alone cannot reveal content.
+3. Extract per note: meeting title, date/time, participants (inferred from title or body), key outcomes, decisions made, action items, and any named clients, deals, dollar figures, or risk signals.
+4. Feed Zoom Notes into Top 10 prioritization alongside emails, calendar, and recordings. A note that documents a decision, unblocks a deal, surfaces a risk, or aligns leadership belongs in the Top 10 even with no email trail.
+5. Do not create a standalone Zoom Notes section in either output document. Notes are input for prioritization, Headlines context, and specificity (names, numbers, dates) only.
+
 ## STEP 2: Analyze and Categorize
 
 From the gathered data, identify:
 
-1. The top 10 most significant items for the executive team. Prioritize deals, revenue impact, strategic decisions, risks, and cross-functional issues. Zoom content informs this list: a call that moved a deal, surfaced a risk, or aligned leadership belongs in the Top 10 even without an email trail.
+1. The top 10 most significant items for the executive team. Prioritize deals, revenue impact, strategic decisions, risks, and cross-functional issues. Zoom content (both recordings and notes) informs this list: a call that moved a deal, surfaced a risk, or aligned leadership belongs in the Top 10 even without an email trail.
 2. Non-recurring calendar meetings vs. recurring 1:1s and standing meetings.
 3. Key email threads organized by: Deals/Pipeline, Operations/Finance, Team/Talent, Strategic, Admin.
 4. All sent emails with date, subject, and action taken.
 5. All OneDrive files modified this week, categorized by: Revenue/Sales, Franchise, Sales Enablement, Contracts, Service Delivery, Notes.
 
-Zoom meetings do not get their own section in the output. They feed Top 10 prioritization and Headlines context only.
+Zoom recordings and Zoom Notes do not get their own section in the output. They feed Top 10 prioritization and Headlines context only.
 
 ## STEP 3: Create Weekly Summary (.docx)
 
