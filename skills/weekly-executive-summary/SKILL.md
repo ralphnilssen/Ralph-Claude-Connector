@@ -52,13 +52,40 @@ Zoom Notes are the AI Companion meeting notes tied to Ralph's calls. They contai
 
 From the gathered data, identify:
 
-1. The top 10 most significant items for the executive team. Prioritize deals, revenue impact, strategic decisions, risks, and cross-functional issues. Zoom content (both recordings and notes) informs this list: a call that moved a deal, surfaced a risk, or aligned leadership belongs in the Top 10 even without an email trail.
+1. The top 10 most significant items that Ralph owns, drives, or contributed to materially. Apply the Ownership Filter (defined after this list) before ranking. Within the qualified set, prioritize deals, revenue impact, strategic decisions, risks, and cross-functional issues. Zoom content (both recordings and notes) informs this list: a call that moved a deal, surfaced a risk, or aligned leadership belongs in the Top 10 only if Ralph owned or contributed to the outcome, not if he was informed or attended.
 2. Non-recurring calendar meetings vs. recurring 1:1s and standing meetings.
 3. Key email threads organized by: Deals/Pipeline, Operations/Finance, Team/Talent, Strategic, Admin.
 4. All sent emails with date, subject, and action taken.
 5. All OneDrive files modified this week, categorized by: Revenue/Sales, Franchise, Sales Enablement, Contracts, Service Delivery, Notes.
 
 Zoom recordings and Zoom Notes do not get their own section in the output. They feed Top 10 prioritization and Headlines context only.
+
+### Ownership Filter
+
+A Headline is something Ralph announces to the leadership team in first person. Ownership is the gate. Importance alone does not qualify an item.
+
+Tag every candidate item as one of three roles:
+
+1. Owner. Ralph is the decision-maker or workstream lead. He drove the outcome.
+2. Contributor. Ralph does not own the workstream, but he made a material decision, provided an insight that changed direction, or took an action that moved it forward. The test: can Ralph credibly write this headline in first person without narrating someone else's work?
+3. Informed. Ralph was cc'd, attended the meeting, was briefed, or was made aware. He did not drive or contribute materially.
+
+Only Owner and Contributor items qualify for Headlines. Informed items are disqualified regardless of strategic importance. The Weekly Summary Top 10 remains broad and can include Owner, Contributor, and Informed items, since that document is Ralph's personal week-in-review. The Headlines document is the external-facing subset.
+
+Disqualification examples:
+
+1. A client escalation where David Nilssen is running point. Informed. Disqualified.
+2. A marketing workstream like UTM tracking or Meta ad restructuring where Ralph was made aware. Informed. Disqualified.
+3. A CEO-led initiative like Q3 AI workshops replacing events. Informed. Disqualified.
+4. A tech or IT issue Ralph was told about but does not own. Informed. Disqualified.
+
+Qualification examples:
+
+1. An AR collections posture where Lauren owns the proposal but Ralph drove sales-side enforcement with Michael Ross. Contributor. Qualified.
+2. A Dynamics enhancement Ralph scoped and Chris shipped. Owner. Qualified.
+3. A recurring Job Order quality issue where Ralph established the weekly Steffy meeting and reinforced standards. Owner. Qualified.
+
+If the qualified set yields fewer than 10 items in a given week, submit fewer Headlines. Do not pad with Informed items to hit the number.
 
 ## STEP 3: Create Weekly Summary (.docx)
 
@@ -75,7 +102,7 @@ Save as: `Weekly_Summary_[date-range].docx`
 
 ## STEP 4: Create Ninety.io Headlines (.docx)
 
-Convert the top 10 items into Headlines for https://app.ninety.io/headlines.
+Convert the qualified Owner and Contributor items from Step 2 into Headlines for https://app.ninety.io/headlines. The Weekly Summary Top 10 may include Informed items; the Headlines document never does.
 
 Each headline has a Title and a Description (max 65,000 characters).
 
