@@ -1,7 +1,7 @@
 ---
 name: account-manager-inbox-analysis
 description: >
-  Analyze a DOXA account manager's Outlook inbox to produce a structured Word document intelligence report. Triggers on the slash command /aminbox or when anyone asks to analyze Michael Ross's (or any AM's) email, run an inbox report, review AM email patterns, check account workload, or asks "what issues is Michael dealing with." Also triggers for recurring weekly or monthly AM inbox reports. Covers: client issue trends, employee question patterns with attribution, daily net email volume, TL/OM email frequency, account workload distribution, CC traffic patterns, response time signals, sentiment indicators, and capacity risk flags. Output is a date-prefixed .docx file saved to /Users/ralph/Documents/Claude/Projects/am-inbox-analysis/. Uses Microsoft 365 for email access and docx-js for document generation.
+  Analyze a DOXA account manager's Outlook inbox to produce a structured Word document intelligence report. Triggers on the slash command /aminbox or when anyone asks to analyze Michael Ross's (or any AM's) email, run an inbox report, review AM email patterns, check account workload, or asks "what issues is Michael dealing with." Also triggers for recurring weekly or monthly AM inbox reports. Covers: client issue trends, employee question patterns with attribution, daily net email volume, TL/OM email frequency, account workload distribution, routine traffic volume, and capacity risk flags. Output is a date-prefixed .docx file saved to /Users/ralph/Documents/Claude/Projects/am-inbox-analysis/. Uses Microsoft 365 for email access and docx-js for document generation.
 ---
 
 # Account Manager Inbox Analysis Skill
@@ -9,7 +9,7 @@ description: >
 Triggered by: `/aminbox` or any natural language request to analyze an AM's inbox.
 
 Produces a Word document (.docx) saved to `/Users/ralph/Documents/Claude/Projects/am-inbox-analysis/`.
-Filename format: `YYYY-MM-DD-AM-Inbox-Report-Michael-Ross.docx` (date prefix = date the report is run)
+Filename format: `YYYY-MM-DD-AM-Inbox-Report-Michael-Ross.docx`
 
 ## Parameters (collect or use defaults)
 
@@ -31,7 +31,7 @@ Aldair Vargas, Alexandria Tomonton, Annie Jimeno, Banjo Morales, Benny Castillo,
 
 ## Step 1: Pull and Deduplicate Emails
 
-Pull inbox in batches of 50 using `offset` pagination with `mailboxOwnerEmail: michael.ross@doxatalent.com`. Deduplicate strictly by `internetMessageId` — the same email appears 4-8x in results with different message IDs. Keep only the first occurrence of each `internetMessageId`.
+Pull inbox in batches of 50 using `offset` pagination with `mailboxOwnerEmail: michael.ross@doxatalent.com`. Deduplicate strictly by `internetMessageId` — the same email appears 4-8x per batch due to threading. Keep only the first occurrence.
 
 Continue until results return fewer than 50 (end of results) or `max_batches` is reached.
 
@@ -41,131 +41,123 @@ Collect per unique email: `sender`, `recipients`, `subject`, `summary`, `receive
 
 ## Step 2: Classify Emails
 
-### 2a. Filter Noise First
+Classification uses three buckets. No TO/CC inference is attempted — the M365 search API returns a flat recipient list that does not distinguish TO from CC. Testing confirmed that proxy rules based on recipient count or importance misclassify at an unacceptable rate. All classification is based on sender domain and subject pattern.
 
-**NOISE** — exclude from all analysis. Sender or subject matches any of:
-- Domains: ninety.io, ess.barracudanetworks.com, calendly.com, circle.so, mindvalley.com, alert.refer.io
+### Bucket A: NOISE — exclude from all analysis
+
+Sender domain or subject pattern matches any of:
+- Domains: ninety.io, ess.barracudanetworks.com, calendly.com, circle.so, mindvalley.com, alert.refer.io, chorus.ai, zoominfo.com, mandrillapp.com
 - Senders: postmaster@doxatalent.com
-- Subject patterns: "unsubscribe", "weekly digest", "daily update", "quarantine notification", "held messages", "new held messages"
-- Any domain ending in .info with unsolicited pitch patterns
+- Subject patterns (case-insensitive): "unsubscribe", "quarantine notification", "held messages", "new held messages", "your daily briefs", "weekly team update"
 
-**AMBIGUOUS** — cold outreach with unsolicited pitch language. Count separately, exclude from all analysis.
+### Bucket B: ROUTINE — count toward volume but exclude from AI analysis
 
-### 2b. Classify Remaining Emails by Type
+Subject contains any of (case-insensitive): "weekly recruitment report", "weekly update", "daily update", "weekly report"
 
-**INTERNAL** — sender domain is doxatalent.com
-- Sub-classify: matches TL/OM list → `TL_OM`; otherwise → `DOXA_OTHER`
+Rationale: Tested against Michael's sent items Jan 1–Apr 25 — zero replies to standard weekly recruitment report emails. When these threads escalate to require Michael's action, the subject line changes ("Urgent: Action Required", "Alignment Needed", "Immediate Action Required"). Those escalations are captured in Bucket C with their updated subject lines.
 
-**CLIENT** — external domain, not noise, not cold outreach
-- Extract domain as account identifier (fusiontek.com → Fusiontek, agiliit.com → Agile IT)
+### Bucket C: ACTIONABLE — full analysis
 
-### 2c. Classify Each Email as DIRECT or CC
-
-CC emails consume attention and require a judgment call even when no action follows. They count toward workload but are excluded from the issues and questions AI analysis. Apply these proxy rules (in order — first match wins):
-
-**Treat as CC (informational/passive):**
-- Subject starts with `FW:` or `FWD:`
-- Subject contains "Weekly", "Report", "Update", "Notification", "Digest", "Summary", or "Alert"
-- Recipients list contains 4 or more distinct email addresses
-- Sender is a shared/group mailbox (e.g., recruitment@, accounting.ph@, servicedesk@, co.servicedelivery@)
-
-**Treat as DIRECT (action-expected):**
-- Michael is the only @doxatalent.com recipient, OR
-- Subject starts with `Re:` with 2 or fewer total recipients, OR
-- Email is marked `importance: high`
-
-**Default:** if none of the above match, treat as DIRECT.
-
-Tag each non-noise email with both its type (INTERNAL/CLIENT) and its mode (DIRECT/CC).
+All emails not matching Bucket A or B. Includes:
+- INTERNAL: sender domain is doxatalent.com
+  - Sub-classify: TL/OM list match → tag as `TL_OM`; otherwise → `DOXA_OTHER`
+- CLIENT: external domain
+  - Extract domain as account name (fusiontek.com → Fusiontek, agiliit.com → Agile IT)
+- AMBIGUOUS: cold outreach patterns (unsolicited vendor/sales pitches from unknown senders)
+  - Count separately, exclude from AI analysis
 
 ---
 
 ## Step 3: Build Raw Metrics
 
 **Volume**
-- Total pulled (raw) vs deduplicated vs net actionable (INTERNAL + CLIENT)
-- Noise rate % and cold outreach count
-- DIRECT count vs CC count (and CC as % of net actionable)
-- Avg net emails per business day (count business days in range)
-- Peak day (most net emails), trough day (fewest)
+- Total pulled (raw) / deduplicated / noise filtered / routine filtered / actionable
+- Routine traffic as % of deduplicated total
+- Avg actionable emails per business day (count business days in date range)
+- Peak day (highest actionable count), trough day (lowest)
 
-**TL/OM breakdown**
-- For every person on the TL/OM reference list: total emails sent to Michael, split into DIRECT vs CC
-- Sort by total descending. Flag zeros as "(no contact in period)"
+**TL/OM breakdown** (actionable emails only)
+- Every person on the TL/OM reference list: email count
+- Sort descending. Flag zeros as "(no contact in period)"
 
-**Account breakdown**
-- For each external domain: total email count, split DIRECT vs CC
-- Sort by total descending, take top 10
+**Account breakdown** (CLIENT actionable only)
+- Every external domain: email count and subject thread summaries
+- Sort descending, top 10
 
 **High-importance emails**
-- Count total and by sender domain
+- Total count and by sender domain, actionable only
 
 ---
 
 ## Step 4: AI Analysis via Anthropic API
 
-Use `claude-sonnet-4-20250514`, max_tokens 4000. Pass only DIRECT-mode emails to all three calls. CC-mode emails feed only the CC Traffic analysis in Step 5.
+Use `claude-sonnet-4-20250514`, max_tokens 4000. Run three calls, each on Bucket C (actionable) emails only. Pass subject + summary + sender domain/name + date for each email.
 
-**Call A — Client Issues**
-System: "You are analyzing email summaries from a DOXA Talent account manager's inbox. These are emails directed TO the account manager, not CC copies. Identify the top 10 recurring issues, concerns, or action items. For each: concise name, estimated email count, which client accounts are involved, and status: resolved / open / recurring. Return a JSON array only, no other text."
-Input: CLIENT + DIRECT summaries (subject + summary + sender domain + date)
+**Call A — Top 10 Client Issues**
+System prompt:
+"You are analyzing email summaries from a DOXA Talent account manager's inbox. DOXA is a staffing company placing remote workers (called VIPs) with US-based clients. Identify the top 10 recurring issues, concerns, or action items in the CLIENT emails provided. Group similar topics. For each issue: (1) a concise name, (2) estimated email count, (3) which client accounts are involved by domain, (4) status: resolved / open / recurring. Return a JSON array only. No preamble or markdown."
 
-**Call B — Employee Questions**
-System: "Identify the top 10 questions or recurring asks that internal DOXA employees direct to this account manager. These are emails sent TO Michael, not CC copies. For each: concise question name, specific sender names (first and last), frequency estimate, and whether it should be self-served via documentation or genuinely requires AM judgment. Return a JSON array only, no other text."
-Input: INTERNAL + DIRECT summaries (subject + summary + sender name + date)
+Input: all CLIENT actionable summaries
+
+**Call B — Top 10 Employee Questions**
+System prompt:
+"You are analyzing internal emails sent to a DOXA Talent account manager. Identify the top 10 questions or recurring asks that DOXA employees bring to this account manager. For each: (1) concise question name, (2) specific senders — first and last name, (3) frequency estimate, (4) classification: self-serve (could be handled with an SOP or FAQ) vs requires-AM (genuinely needs account manager judgment). Return a JSON array only. No preamble or markdown."
+
+Input: all INTERNAL actionable summaries (DOXA_OTHER + TL_OM)
 
 **Call C — Account Health Signals**
-System: "Based on these email summaries, identify: (1) accounts showing friction or dissatisfaction, (2) accounts with low or no direct contact that may indicate disengagement, (3) accounts with escalation patterns. Return JSON with three arrays: friction_accounts, silent_accounts, escalation_accounts. No other text."
-Input: CLIENT + DIRECT emails grouped by domain
+System prompt:
+"Based on these email summaries from a DOXA Talent account manager, identify: (1) accounts showing friction or dissatisfaction — look for complaints, escalations, missed deliverables, tone signals; (2) accounts with very low contact volume that may indicate disengagement or churn risk; (3) accounts with escalating thread complexity — same problem appearing in multiple threads. Return JSON with three arrays: friction_accounts (name, evidence, risk_level: high/medium/low), silent_accounts (name, last_contact_estimate), escalation_accounts (name, pattern_description). No preamble or markdown."
 
-**Call D — CC Traffic Patterns**
-System: "These are emails where the account manager was CC'd rather than the primary recipient. Identify: (1) the top senders who copy the account manager most and on what topics, (2) whether the CC pattern appears to be for visibility, cover, or genuine need-to-know, (3) any CC threads that likely required the account manager's action anyway. Return JSON with keys: top_cc_senders (array with name, count, topics, pattern_type), action_required_ccs (array with subject and sender), cc_reduction_opportunities (array of suggestions). No other text."
-Input: all CC-mode emails (INTERNAL + CLIENT), grouped by sender
+Input: CLIENT actionable emails grouped by domain
 
 ---
 
 ## Step 5: Generate Word Document
 
-Install docx-js if needed: `npm install -g docx`
+Install if needed: `npm install -g docx`
 
 ### Document Sections
 
-1. Cover: "Account Manager Inbox Report — Michael Ross", date range subtitle, generated date
+1. Cover — title, date range, generated date
 2. Period Summary (table)
-3. Top 10 Client Issues — DIRECT emails only (table)
-4. Top 10 Employee Questions — DIRECT emails only (table)
-5. Email Volume by TL/OM — total, DIRECT, CC split (table)
-6. Top 10 Accounts by Volume — total, DIRECT, CC split (table)
-7. CC Traffic Summary — who copies Michael, why, and reduction opportunities (narrative + table)
-8. Account Health Signals (three subsections: friction, silent, escalation)
+3. Top 10 Client Issues — Bucket C CLIENT only (table)
+4. Top 10 Employee Questions — Bucket C INTERNAL only (table)
+5. Email Volume by TL/OM (table)
+6. Top 10 Accounts by Volume (table)
+7. Account Health Signals (three subsections)
+8. Routine Traffic Summary (brief — volume of weekly report emails excluded from analysis, with top senders)
 9. Capacity and Risk Flags (bullets)
 
 ### Section 2: Period Summary Table
 
 | Metric | Value |
 |---|---|
-| Date range | start_date to end_date |
-| Business days covered | N |
-| Total emails (raw pulled) | N |
-| Deduplicated total | N |
-| Noise / automated filtered | N (X%) |
-| Cold outreach filtered | N |
-| Net actionable | N |
-| — Direct (TO Michael) | N (X%) |
-| — CC / group traffic | N (X%) |
-| Avg per business day (net) | N |
+| Date range | start to end |
+| Business days | N |
+| Total emails pulled (raw) | N |
+| Deduplicated | N |
+| Noise filtered | N |
+| Routine traffic filtered | N (X%) |
+| Actionable emails analyzed | N |
+| Avg actionable per business day | N |
 | High-importance emails | N |
-| Peak day | date (N emails) |
+| Peak day | date (N) |
 
-### Section 7: CC Traffic Summary
+### Section 8: Routine Traffic Summary
 
-This section answers: is Michael being looped in appropriately, or is CC volume creating unnecessary overhead?
+Brief section — not a major analysis. Report:
+- Total weekly report / routine emails excluded
+- Top 5 senders of routine traffic by count
+- Note: "These threads are monitored for subject-line escalations, which are included in the actionable analysis above."
 
-Include:
-- Total CC emails and as % of net volume
-- Top 5 CC senders with topic summary
-- Count of CC emails that likely required action anyway (attention tax with no escape)
-- Specific reduction opportunities (e.g., "Recruitment report threads: Michael copied on every reply — consider moving to weekly summary only")
+### Section 9: Capacity and Risk Flags
+
+Bullet list covering:
+- Accounts where Michael appears to be the sole DOXA contact in threads (no other DOXA staff visible in recipients)
+- Topics appearing in 3+ separate threads (systemic vs one-off)
+- Employee question categories that suggest a missing SOP or FAQ (from Call B self-serve classifications)
+- Any client domains that first appeared in the last 30 days of the period (new account signals)
 
 ### docx-js Pattern
 
@@ -174,7 +166,6 @@ const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
         HeadingLevel, AlignmentType, BorderStyle, WidthType, ShadingType } = require('docx');
 const fs = require('fs');
 
-// Page: US Letter, 1-inch margins (content width = 9360 DXA)
 const pageProps = {
   page: {
     size: { width: 12240, height: 15840 },
@@ -185,9 +176,10 @@ const pageProps = {
 const cellBorder = { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" };
 const borders = { top: cellBorder, bottom: cellBorder, left: cellBorder, right: cellBorder };
 
-// Header row: white text on navy (1F3864), ShadingType.CLEAR
-// Data rows: alternate F2F2F2 and FFFFFF
-// Always set both columnWidths on Table AND width on each TableCell (DXA only, never PERCENTAGE)
+// Header rows: white text on navy 1F3864, ShadingType.CLEAR
+// Data rows: alternate F2F2F2 / FFFFFF
+// Always set columnWidths on Table AND width on each TableCell (DXA only, never PERCENTAGE)
+// columnWidths must sum to 9360 DXA
 
 const doc = new Document({
   styles: {
@@ -201,7 +193,7 @@ const doc = new Document({
         paragraph: { spacing: { before: 200, after: 100 }, outlineLevel: 1 } },
     ]
   },
-  sections: [{ properties: pageProps, children: [ /* all content */ ] }]
+  sections: [{ properties: pageProps, children: [ /* content */ ] }]
 });
 
 Packer.toBuffer(doc).then(buffer => {
@@ -210,11 +202,11 @@ Packer.toBuffer(doc).then(buffer => {
 });
 ```
 
-Column width sets (must sum to 9360 DXA):
+Column width sets (must sum to 9360):
 - 2-col equal: [4680, 4680]
 - 2-col 1/3+2/3: [3120, 6240]
 - 3-col equal: [3120, 3120, 3120]
-- 4-col (name+total+direct+cc): [3120, 2080, 2080, 2080]
+- 4-col: [3120, 2080, 2080, 2080]
 - 5-col (rank+issue+accounts+freq+status): [936, 2808, 2808, 1404, 1404]
 
 After generating, validate:
@@ -226,36 +218,34 @@ python /mnt/skills/public/docx/scripts/office/validate.py /home/claude/report.do
 
 ## Step 6: Save Output
 
-**Determine today's date** for the filename prefix (format: YYYY-MM-DD).
+Date prefix = today's date (YYYY-MM-DD).
 
-**Target folder:** `/Users/ralph/Documents/Claude/Projects/am-inbox-analysis/`
-Dedicated to this skill's outputs. Do not save elsewhere. If missing, create with `Filesystem:create_directory`.
+Target: `/Users/ralph/Documents/Claude/Projects/am-inbox-analysis/YYYY-MM-DD-AM-Inbox-Report-Michael-Ross.docx`
 
-**Filename:** `YYYY-MM-DD-AM-Inbox-Report-Michael-Ross.docx`
-Example: `2026-04-25-AM-Inbox-Report-Michael-Ross.docx`
+Steps:
+1. Generate and validate at `/home/claude/YYYY-MM-DD-AM-Inbox-Report-Michael-Ross.docx`
+2. Use `Filesystem:write_file` to write to the target path
+3. Confirm save path in chat
+4. Call `present_files` for in-chat download link
 
-**Save steps:**
-1. Generate and validate the docx at `/home/claude/YYYY-MM-DD-AM-Inbox-Report-Michael-Ross.docx`
-2. Use `Filesystem:write_file` to write to `/Users/ralph/Documents/Claude/Projects/am-inbox-analysis/YYYY-MM-DD-AM-Inbox-Report-Michael-Ross.docx`
-3. Confirm the full save path in chat
-4. Call `present_files` for an in-chat download link
+If output folder is missing, create with `Filesystem:create_directory` first.
 
 ---
 
 ## Recurring Report Mode
 
-Accept a `comparison_period` parameter (previous week or month). Compute delta metrics: volume change, direct vs CC ratio shift, new issues vs resolved, new TL/OM patterns, new client domains, accounts that went silent. Each run produces a new date-prefixed file; prior runs are preserved for historical comparison.
+Accept `comparison_period` (previous week or month). Compute deltas: actionable volume change, new issues vs resolved, new TL/OM activity patterns, new client domains, accounts that went silent. Each run produces a new date-prefixed file — prior runs accumulate for trend comparison. Scheduling requires manual trigger each period.
 
 ---
 
 ## Error Handling
 
-- M365 auth error: verify Michael's mailbox has delegate sharing enabled with Mail.Read.Shared permission
-- Fewer than 20 unique emails after dedup: warn of possible incomplete results
+- M365 auth error: verify delegate sharing and Mail.Read.Shared permission on Michael's mailbox
+- Fewer than 20 unique emails after dedup: warn of incomplete results, check date range
 - Anthropic API failure: fall back to keyword frequency on subject lines, note degraded accuracy
-- Filesystem write failure: fall back to present_files only and note the path
-- TL/OM with no email matches: include in table with count = 0, flag as "(no contact)"
-- Output folder missing: create with Filesystem:create_directory before writing
+- Filesystem write failure: fall back to present_files only
+- TL/OM with no matches: include in table with count 0, flag "(no contact)"
+- Output folder missing: create before writing
 
 ---
 
