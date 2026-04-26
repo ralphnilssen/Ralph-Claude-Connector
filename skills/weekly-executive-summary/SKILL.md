@@ -5,7 +5,7 @@ description: "Generate Ralph Nilssen's weekly executive summary and Ninety.io He
 
 # Weekly Executive Summary and Ninety Headlines
 
-You are generating Ralph Nilssen's (Chief Sales Officer, DOXA Talent) weekly executive summary and Ninety.io headlines every Friday. This must produce two Word documents (.docx) saved to \C:\Users\RalphNilssen\Obsidian\Claude\outputs`.`
+You are generating Ralph Nilssen's (Chief Sales Officer, DOXA Talent) weekly executive summary and Ninety.io headlines every Friday. This must produce two Word documents (.docx) saved to `C:\Users\RalphNilssen\Obsidian\Claude\outputs`.
 
 ## STEP 1: Gather Data
 
@@ -64,13 +64,14 @@ Zoom recordings and Zoom Notes do not get their own section in the output. They 
 
 A Headline is something Ralph announces to the leadership team in first person. Ownership is the gate. Importance alone does not qualify an item.
 
-Tag every candidate item as one of three roles:
+Tag every candidate item as one of four roles:
 
 1. Owner. Ralph is the decision-maker or workstream lead. He drove the outcome.
 2. Contributor. Ralph does not own the workstream, but he made a material decision, provided an insight that changed direction, or took an action that moved it forward. The test: can Ralph credibly write this headline in first person without narrating someone else's work?
-3. Informed. Ralph was cc'd, attended the meeting, was briefed, or was made aware. He did not drive or contribute materially.
+3. Synthesizer. Ralph authored a perspective by integrating signals across sources (external research, multiple internal incidents, cross-functional patterns, macro-environment data) into a strategic flag the leadership team needs to register. He does not own the underlying events. He owns the synthesis and the implications. The test: would the leadership team see this connection without Ralph drawing it?
+4. Informed. Ralph was cc'd, attended the meeting, was briefed, or was made aware. He did not drive, contribute, or synthesize.
 
-Only Owner and Contributor items qualify for Headlines. Informed items are disqualified regardless of strategic importance. The Weekly Summary Top 10 remains broad and can include Owner, Contributor, and Informed items, since that document is Ralph's personal week-in-review. The Headlines document is the external-facing subset.
+Owner, Contributor, and Synthesizer items qualify for Headlines. Informed items are disqualified regardless of strategic importance. The Weekly Summary Top 10 remains broad and can include all four roles, since that document is Ralph's personal week-in-review. The Headlines document is the external-facing subset.
 
 Disqualification examples:
 
@@ -84,6 +85,8 @@ Qualification examples:
 1. An AR collections posture where Lauren owns the proposal but Ralph drove sales-side enforcement with Michael Ross. Contributor. Qualified.
 2. A Dynamics enhancement Ralph scoped and Chris shipped. Owner. Qualified.
 3. A recurring Job Order quality issue where Ralph established the weekly Steffy meeting and reinforced standards. Owner. Qualified.
+4. A macro-environment flag integrating external industry data (ASA, JPMorgan, Deloitte) with internal pipeline implications for Q3 forecasting. Synthesizer. Qualified.
+5. A pattern-recognition headline tying together four unrelated CRM incidents from the week into a structural diagnosis the leadership team needs to register. Synthesizer. Qualified.
 
 If the qualified set yields fewer than 10 items in a given week, submit fewer Headlines. Do not pad with Informed items to hit the number.
 
@@ -102,7 +105,7 @@ Save as: `Weekly_Summary_[date-range].docx`
 
 ## STEP 4: Create Ninety.io Headlines (.docx)
 
-Convert the qualified Owner and Contributor items from Step 2 into Headlines for https://app.ninety.io/headlines. The Weekly Summary Top 10 may include Informed items; the Headlines document never does.
+Convert the qualified Owner, Contributor, and Synthesizer items from Step 2 into Headlines for https://app.ninety.io/headlines. The Weekly Summary Top 10 may include Informed items; the Headlines document never does.
 
 Each headline has a Title and a Description (max 65,000 characters).
 
@@ -110,33 +113,48 @@ Each headline has a Title and a Description (max 65,000 characters).
 
 The primary readers are the DOXA Leadership Team. The three most critical readers:
 
-- David Nilssen (CEO) — Culture Index: Persuader. High autonomy (~8), high sociability (~7), low detail (~2). Wants outcomes, momentum, the "so what." Scan-reads for impact. Lead with results and strategic implications.
-- Stephen Hosemann (CFO) — Culture Index: Scholar. High logic (~10), high compliance (~6), low sociability (~1). Wants numbers, precision, risk flags. Will interrogate the data. Include specific figures and financial implications.
-- Lauren Hoover (COO) — Culture Index: Architect. High autonomy (~9), high detail/patience (~7), low sociability (~2). Systems thinker. Wants to know what is working, what is broken, and what the fix is. Use process and systems language.
+- David Nilssen (CEO). Culture Index: Persuader. High autonomy (~8), high sociability (~7), low detail (~2). Wants outcomes, momentum, the "so what." Scan-reads for impact. Lead with results and strategic implications.
+- Stephen Hosemann (CFO). Culture Index: Scholar. High logic (~10), high compliance (~6), low sociability (~1). Wants numbers, precision, risk flags. Will interrogate the data. Include specific figures and financial implications.
+- Lauren Hoover (COO). Culture Index: Architect. High autonomy (~9), high detail/patience (~7), low sociability (~2). Systems thinker. Wants to know what is working, what is broken, and what the fix is. Use process and systems language.
 
 Other leadership team members:
 
-- Steve Gire (CTO) — Craftsman. Methodical, detail-oriented, technical.
-- Christina Chambers (Chief Franchise Officer) — Influencer. Social, relationship-driven.
+- Steve Gire (CTO). Craftsman. Methodical, detail-oriented, technical.
+- Christina Chambers (Chief Franchise Officer). Influencer. Social, relationship-driven.
 
 ### Tone Requirements (strict)
 
 - Neutral. Never assign blame to anyone.
 - Take responsibility and ownership where appropriate.
 - Forward-thinking and solution-oriented. Always include what happens next.
-- Write in first person as Ralph Nilssen (Chief Sales Officer), conversational but professional prose. No bullet points.
+- Write in first person as Ralph Nilssen (Chief Sales Officer), conversational but professional prose.
+- Use numbered lists when itemizing incidents, implications, citations, framework questions, design considerations, or any set of parallel items the reader should track distinctly. Default to prose for narrative flow, transitions, and synthesis.
 - Use paragraph breaks between distinct thoughts.
 - Include specific names, numbers, and dates.
+- Cite external sources with inline markdown links when integrating outside research or industry data.
 
-### Voice examples
+### Title Conventions
 
-Match the voice and style of these examples:
+Use one of two formats:
 
-**Example 1:** "I took several steps this week to tighten our approach to accounts receivable on the sales side. I engaged Michael Ross to follow up with all past-due clients along with a heads-up that there is a proposal circulating to restrict job order placement for clients who are late on payment. I discussed Lauren's 'Proposal: Clients with Aging AR' this week and gave some minor suggestions. All of these efforts are converging toward a more consistent collections posture."
+1. Short noun phrase, two to four words, for self-evident topics. Example: "Buyer Hesitation."
+2. "Category: Specific Description" format when grouping by domain or function. Examples: "Account Management Redesign: Working Draft" or "Dynamics CRM: Systemic Gaps Affecting Sales Data, Routing, and Activity Capture."
 
-**Example 2:** "Exciting progress this week. We released an update to the Opportunity object in Dynamics 365 that removes the 24-hour delay in contract status changes. Previously, when an MSA was sent through Adobe Sign, Dynamics wouldn't reflect the contract status until the next day. Chris shipped an enhancement that now updates Dynamics within five minutes of the MSA being sent and countersigned. This closes a visibility gap and strengthens our ability to manage active deals in real time."
+No periods at the end of titles. No marketing framing, exclamation points, or rhetorical hooks.
 
-**Example 3:** "Over the past few weeks, we have seen a pattern of Job Orders submitted with incomplete, inaccurate, or misaligned information in Dynamics. While these issues are being corrected as they surface, they are creating avoidable rework, delays at the front of the recruiting process, and additional time spent aligning across Sales and Recruitment. The impact shows up first in Recruitment through follow-up, clarification, and rework, and then downstream in candidate experience and client communication. As volume increases, this level of friction is not sustainable. Steffy and I are now meeting weekly to review issues as they arise, clarify expectations, and address recurring gaps. In parallel, we are reinforcing clearer submission standards and alignment across Sales, Franchisees, and Recruitment to reduce wasted motion and protect recruiting capacity."
+### Calibrating Sign-Off
+
+Most headlines close with a calibration line that tells the leadership team what response is and is not expected. This is especially important for Synthesizer headlines and for working drafts where the implied ask might otherwise be misread.
+
+Standard formula:
+
+"I am not asking for [a decision / a plan revision / action] this week. I am [flagging / asking the leadership team to register / surfacing] [the pattern / the dependency / the signal] before [trigger event]."
+
+Skip the calibration line when the headline is a clean status update with a self-evident next step (e.g., a completed training rollout where the next step is already named in the body).
+
+### Voice and Style Reference
+
+Match the voice, structure, citation style, and length variance shown in `references/voice_examples.md`. Read the full file before drafting headlines. Each example is annotated with role classification, structural pattern (prose, numbered list, or mixed), use of external citations, sign-off pattern, and word count. Length range spans roughly 100 to 600 words depending on subject complexity. Do not pad short topics. Do not compress complex topics.
 
 ### Document formatting
 
@@ -154,7 +172,7 @@ Save as: `Headlines_Week[N]_[date].docx`
 
 **Output folder:** `C:\Users\RalphNilssen\Obsidian\Claude`
 
-Before writing the output files, connect this folder using `mcp__cowork__request_cowork_directory` with path `C:\Users\RalphNilssen\Obsidian\Claude`. Once connected, it mounts in bash at `/sessions/[session-id]/mnt/Claude/` — use that bash path when writing files via shell commands or Node.js scripts.
+Before writing the output files, connect this folder using `mcp__cowork__request_cowork_directory` with path `C:\Users\RalphNilssen\Obsidian\Claude`. Once connected, it mounts in bash at `/sessions/[session-id]/mnt/Claude/`. Use that bash path when writing files via shell commands or Node.js scripts.
 
 Save both .docx files to `C:\Users\RalphNilssen\Obsidian\Claude`. Also save copies to the session outputs folder (`/sessions/[session-id]/mnt/outputs/`) as a fallback.
 
