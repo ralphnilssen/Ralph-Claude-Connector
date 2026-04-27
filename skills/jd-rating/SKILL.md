@@ -43,17 +43,17 @@ After all JDs are processed, summarize results in a table: JD filename, overall 
 
 Each item gets one of three statuses. Use these exact strings (no trailing spaces):
 - `Completed` — criterion is met
-- `Pending` — criterion is conditionally exempt (see Conditional items below) or genuinely ambiguous
+- `Pending` — criterion is genuinely ambiguous or conditionally exempt (see below)
 - `Rework` — criterion is not met and must be addressed
 
-**Conditional items** — if absent, mark `Pending` (not `Rework`); do NOT count them against the score:
-- D36: "Equity or other perks mentioned (if applicable)"
+**Conditional item** — if not applicable or absent with no guidance, mark `Pending` (not `Rework`):
+- D36: "Equity or other perks mentioned (if applicable)" — only mark `Pending` if the role type makes equity genuinely irrelevant
 
-**D33 (Salary range)** is a required item, not conditional. If no specific salary range or band is stated, mark `Rework`.
-
-**Overall rating (E37)**:
+**Overall rating (E37)** — computed automatically by the script:
 - `Approved` — zero Rework items
 - `Not Approved - Reworked` — one or more Rework items
+
+Do not include `overall_rating` in the JSON scores file. The script derives it from the scores.
 
 ---
 
@@ -87,7 +87,7 @@ Each item gets one of three statuses. Use these exact strings (no trailing space
 
 | Cell | Item | Completed if... | Pending if... | Rework if... |
 |------|------|-----------------|---------------|--------------|
-| D22 | Education requirement included only if truly necessary | Education is listed and is proportionate to the role; or explicitly waived ("or equivalent experience") | No education listed — may be intentional for the role | Education requirement appears inflated for the scope |
+| D22 | Education requirement included only if truly necessary | Education is listed and proportionate to the role; or explicitly waived ("or equivalent experience") | No education listed — may be intentional for the role | Education requirement appears inflated for the scope |
 | D23 | Years of experience specified | A specific range or minimum is stated (e.g., "3+ years") | — | Not mentioned at all |
 | D24 | Core technical skills or certifications listed | Specific tools, platforms, or certs are named | — | Vague or absent |
 
@@ -110,10 +110,10 @@ Each item gets one of three statuses. Use these exact strings (no trailing space
 
 | Cell | Item | Completed if... | Pending if... | Rework if... |
 |------|------|-----------------|---------------|--------------|
-| D33 | Salary range included | A salary range or band is stated | Unclear or vague — note what is present and flag for revision | No salary range or band stated — mark `Rework` |
-| D34 | Bonus or commission structure described | Bonus/commission terms are described, or explicitly noted as not applicable | Unclear whether bonus applies | Role clearly involves commissions or bonuses but none are described |
+| D33 | Salary range included | A specific salary range or band is stated | — | Absent, vague ("competitive"), or listed as TBD |
+| D34 | Bonus or commission structure described | Bonus/commission terms are described, or explicitly noted as not applicable | Unclear whether bonus applies | Role clearly involves variable compensation but structure is not described |
 | D35 | Key benefits highlighted | At least two benefits are described (health, PTO, etc.) | — | No benefits mentioned at all |
-| D36 | Equity or other perks mentioned *(if applicable)* | Equity or notable perks are described | Not applicable for role type, or not mentioned — conditional item, does not count against score | — |
+| D36 | Equity or other perks mentioned *(if applicable)* | Equity or notable perks are described | Not applicable for role type — conditional item | Equity-eligible role with no mention |
 
 ---
 
@@ -125,13 +125,13 @@ For every `Rework` or `Pending` item, write a short, specific note in the corres
 - E19: `11 bullets listed; guideline is 6–10 — consolidate or trim one item`
 - E20: `Rewrite bullets to lead with outcomes rather than tasks`
 - E26: `Add a distinct Preferred Qualifications section separate from Required`
-- E33: `No salary range stated — replace with a defined band before publishing`
+- E33: `Replace vague language with a defined salary range or band`
 
 ---
 
 ## JSON scores format
 
-Write this file before running the script:
+Write this file before running the script. Do not include `overall_rating` — the script computes it.
 
 ```json
 {
@@ -163,19 +163,17 @@ Write this file before running the script:
   },
   "notes": {
     "E15": "No reporting line identified — add manager or supervisor title",
+    "E19": "Slightly under target; add one bullet to reach the 6–10 range",
     "E20": "Rewrite bullets to lead with outcomes rather than tasks",
     "E26": "Add a distinct Preferred Qualifications section separate from Required",
     "E27": "Note preferred industry experience (e.g., construction, services)",
     "E28": "Consider listing preferred certifications",
-    "E33": "No salary range stated — replace with a defined band before publishing",
+    "E33": "Replace vague language with a defined salary range or band",
     "E34": "Confirm and document whether a bonus or commission applies",
     "E35": "Describe key benefits (health, PTO, etc.) to improve candidate appeal"
-  },
-  "overall_rating": "Not Approved - Reworked"
+  }
 }
 ```
-
-Status strings use no trailing spaces. The template's COUNTIF formula and checkbox formulas in column B match these exact values.
 
 ---
 
@@ -185,4 +183,4 @@ After processing all files, produce a summary table in the conversation:
 
 | File | Client | Role | Rating | Completed | Pending | Rework |
 |------|--------|------|--------|-----------|---------|--------|
-| Absco - Accounting Specialist.docx | Absco Solutions | Accounting Specialist | Not Approved — Reworked | 11 | 3 | 7 |
+| Absco - Accounting Specialist.docx | Absco Solutions | Accounting Specialist | Not Approved - Reworked | 11 | 2 | 8 |

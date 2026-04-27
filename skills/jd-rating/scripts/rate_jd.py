@@ -7,6 +7,15 @@ Usage:
 import sys, json, shutil
 from pathlib import Path
 
+
+def compute_overall_rating(scores: dict) -> str:
+    """Return 'Not Approved - Reworked' if any scored item is Rework, else 'Approved'."""
+    for value in scores.values():
+        if value == "Rework":
+            return "Not Approved - Reworked"
+    return "Approved"
+
+
 def main():
     if len(sys.argv) < 3:
         print("Usage: rate_jd.py <scores_json> <output_xlsx>")
@@ -31,16 +40,23 @@ def main():
     wb = load_workbook(output_path)
     ws = wb.active
 
-    for cell, value in data.get("scores", {}).items():
+    scores = data.get("scores", {})
+    notes = data.get("notes", {})
+
+    # Write status values to D column cells
+    for cell, value in scores.items():
         ws[cell] = value
 
-    for cell, note in data.get("notes", {}).items():
+    # Write notes to E column cells
+    for cell, note in notes.items():
         ws[cell] = note
 
-    ws["E37"] = data.get("overall_rating", "Not Approved - Reworked")
+    # Compute and write overall rating to E37
+    ws["E37"] = compute_overall_rating(scores)
 
     wb.save(output_path)
     print(f"Saved: {output_path}")
+
 
 if __name__ == "__main__":
     main()
