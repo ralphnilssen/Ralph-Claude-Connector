@@ -41,17 +41,18 @@ After all JDs are processed, summarize results in a table: JD filename, overall 
 
 ## Scoring rules
 
-Each item gets one of three statuses. Use these exact strings (note the trailing space on Completed and Pending):
-- `Completed ` — criterion is met
-- `Pending ` — criterion is conditionally exempt (see Conditional items below) or genuinely ambiguous
+Each item gets one of three statuses. Use these exact strings (no trailing spaces):
+- `Completed` — criterion is met
+- `Pending` — criterion is conditionally exempt (see Conditional items below) or genuinely ambiguous
 - `Rework` — criterion is not met and must be addressed
 
-**Conditional items** — if absent, mark `Pending ` (not `Rework`); do NOT count them against the score:
-- D33: "Salary range included (if possible)"
+**Conditional items** — if absent, mark `Pending` (not `Rework`); do NOT count them against the score:
 - D36: "Equity or other perks mentioned (if applicable)"
 
+**D33 (Salary range)** is a required item, not conditional. If no specific salary range or band is stated, mark `Rework`.
+
 **Overall rating (E37)**:
-- `Approved ` — zero Rework items
+- `Approved` — zero Rework items
 - `Not Approved - Reworked` — one or more Rework items
 
 ---
@@ -109,7 +110,7 @@ Each item gets one of three statuses. Use these exact strings (note the trailing
 
 | Cell | Item | Completed if... | Pending if... | Rework if... |
 |------|------|-----------------|---------------|--------------|
-| D33 | Salary range included *(if possible)* | A salary range or band is stated | Listed as TBD, or omitted — conditional item, does not count against score | — |
+| D33 | Salary range included | A salary range or band is stated | Unclear or vague — note what is present and flag for revision | No salary range or band stated — mark `Rework` |
 | D34 | Bonus or commission structure described | Bonus/commission terms are described, or explicitly noted as not applicable | Unclear whether bonus applies | Role clearly involves commissions or bonuses but none are described |
 | D35 | Key benefits highlighted | At least two benefits are described (health, PTO, etc.) | — | No benefits mentioned at all |
 | D36 | Equity or other perks mentioned *(if applicable)* | Equity or notable perks are described | Not applicable for role type, or not mentioned — conditional item, does not count against score | — |
@@ -118,13 +119,13 @@ Each item gets one of three statuses. Use these exact strings (note the trailing
 
 ## Notes column (E)
 
-For every `Rework` or `Pending ` item, write a short, specific note in the corresponding E cell explaining what needs to be added or changed. Keep notes to one sentence. Examples:
+For every `Rework` or `Pending` item, write a short, specific note in the corresponding E cell explaining what needs to be added or changed. Keep notes to one sentence. Examples:
 
 - E15: `No reporting line identified — add manager or supervisor title`
 - E19: `11 bullets listed; guideline is 6–10 — consolidate or trim one item`
 - E20: `Rewrite bullets to lead with outcomes rather than tasks`
 - E26: `Add a distinct Preferred Qualifications section separate from Required`
-- E33: `TBD is not a range — replace with a salary band when available`
+- E33: `No salary range stated — replace with a defined band before publishing`
 
 ---
 
@@ -138,27 +139,27 @@ Write this file before running the script:
   "role_title": "Accounting Specialist",
   "date": "2026-04-25",
   "scores": {
-    "D10": "Completed ",
-    "D11": "Completed ",
-    "D13": "Completed ",
-    "D14": "Completed ",
+    "D10": "Completed",
+    "D11": "Completed",
+    "D13": "Completed",
+    "D14": "Completed",
     "D15": "Rework",
-    "D16": "Completed ",
-    "D17": "Completed ",
-    "D19": "Pending ",
+    "D16": "Completed",
+    "D17": "Completed",
+    "D19": "Pending",
     "D20": "Rework",
-    "D22": "Completed ",
-    "D23": "Completed ",
-    "D24": "Completed ",
+    "D22": "Completed",
+    "D23": "Completed",
+    "D24": "Completed",
     "D26": "Rework",
     "D27": "Rework",
     "D28": "Rework",
-    "D30": "Completed ",
-    "D31": "Completed ",
-    "D33": "Pending ",
+    "D30": "Completed",
+    "D31": "Completed",
+    "D33": "Rework",
     "D34": "Rework",
     "D35": "Rework",
-    "D36": "Pending "
+    "D36": "Pending"
   },
   "notes": {
     "E15": "No reporting line identified — add manager or supervisor title",
@@ -166,7 +167,7 @@ Write this file before running the script:
     "E26": "Add a distinct Preferred Qualifications section separate from Required",
     "E27": "Note preferred industry experience (e.g., construction, services)",
     "E28": "Consider listing preferred certifications",
-    "E33": "TBD is not a range — replace with a salary band when available",
+    "E33": "No salary range stated — replace with a defined band before publishing",
     "E34": "Confirm and document whether a bonus or commission applies",
     "E35": "Describe key benefits (health, PTO, etc.) to improve candidate appeal"
   },
@@ -174,7 +175,7 @@ Write this file before running the script:
 }
 ```
 
-Note the trailing spaces on `Completed ` and `Pending ` — these must match the dropdown values exactly or Excel will display them as plain text outside the data validation.
+Status strings use no trailing spaces. The template's COUNTIF formula and checkbox formulas in column B match these exact values.
 
 ---
 
