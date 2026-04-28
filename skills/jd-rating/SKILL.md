@@ -41,18 +41,19 @@ After all JDs are processed, summarize results in a table: JD filename, overall 
 
 ## Scoring rules
 
-Each item gets one of three statuses. Use these exact strings (note the trailing space on Completed and Pending):
-- `Completed ` — criterion is met
-- `Pending ` — criterion is conditionally exempt (see Conditional items below) or genuinely ambiguous
+Each item gets one of three statuses. Use these exact strings (no trailing spaces):
+- `Completed` — criterion is met
+- `Pending` — criterion is genuinely ambiguous or conditionally exempt (see below)
 - `Rework` — criterion is not met and must be addressed
 
-**Conditional items** — if absent, mark `Pending ` (not `Rework`); do NOT count them against the score:
-- D33: "Salary range included (if possible)"
-- D36: "Equity or other perks mentioned (if applicable)"
+**Conditional item** — if not applicable or absent with no guidance, mark `Pending` (not `Rework`):
+- D36: "Equity or other perks mentioned (if applicable)" — only mark `Pending` if the role type makes equity genuinely irrelevant
 
-**Overall rating (E37)**:
-- `Approved ` — zero Rework items
+**Overall rating (E37)** — computed automatically by the script:
+- `Approved` — zero Rework items
 - `Not Approved - Reworked` — one or more Rework items
+
+Do not include `overall_rating` in the JSON scores file. The script derives it from the scores.
 
 ---
 
@@ -86,7 +87,7 @@ Each item gets one of three statuses. Use these exact strings (note the trailing
 
 | Cell | Item | Completed if... | Pending if... | Rework if... |
 |------|------|-----------------|---------------|--------------|
-| D22 | Education requirement included only if truly necessary | Education is listed and is proportionate to the role; or explicitly waived ("or equivalent experience") | No education listed — may be intentional for the role | Education requirement appears inflated for the scope |
+| D22 | Education requirement included only if truly necessary | Education is listed and proportionate to the role; or explicitly waived ("or equivalent experience") | No education listed — may be intentional for the role | Education requirement appears inflated for the scope |
 | D23 | Years of experience specified | A specific range or minimum is stated (e.g., "3+ years") | — | Not mentioned at all |
 | D24 | Core technical skills or certifications listed | Specific tools, platforms, or certs are named | — | Vague or absent |
 
@@ -109,28 +110,28 @@ Each item gets one of three statuses. Use these exact strings (note the trailing
 
 | Cell | Item | Completed if... | Pending if... | Rework if... |
 |------|------|-----------------|---------------|--------------|
-| D33 | Salary range included *(if possible)* | A salary range or band is stated | Listed as TBD, or omitted — conditional item, does not count against score | — |
-| D34 | Bonus or commission structure described | Bonus/commission terms are described, or explicitly noted as not applicable | Unclear whether bonus applies | Role clearly involves commissions or bonuses but none are described |
+| D33 | Salary range included | A specific salary range or band is stated | — | Absent, vague ("competitive"), or listed as TBD |
+| D34 | Bonus or commission structure described | Bonus/commission terms are described, or explicitly noted as not applicable | Unclear whether bonus applies | Role clearly involves variable compensation but structure is not described |
 | D35 | Key benefits highlighted | At least two benefits are described (health, PTO, etc.) | — | No benefits mentioned at all |
-| D36 | Equity or other perks mentioned *(if applicable)* | Equity or notable perks are described | Not applicable for role type, or not mentioned — conditional item, does not count against score | — |
+| D36 | Equity or other perks mentioned *(if applicable)* | Equity or notable perks are described | Not applicable for role type — conditional item | Equity-eligible role with no mention |
 
 ---
 
 ## Notes column (E)
 
-For every `Rework` or `Pending ` item, write a short, specific note in the corresponding E cell explaining what needs to be added or changed. Keep notes to one sentence. Examples:
+For every `Rework` or `Pending` item, write a short, specific note in the corresponding E cell explaining what needs to be added or changed. Keep notes to one sentence. Examples:
 
 - E15: `No reporting line identified — add manager or supervisor title`
 - E19: `11 bullets listed; guideline is 6–10 — consolidate or trim one item`
 - E20: `Rewrite bullets to lead with outcomes rather than tasks`
 - E26: `Add a distinct Preferred Qualifications section separate from Required`
-- E33: `TBD is not a range — replace with a salary band when available`
+- E33: `Replace vague language with a defined salary range or band`
 
 ---
 
 ## JSON scores format
 
-Write this file before running the script:
+Write this file before running the script. Do not include `overall_rating` — the script computes it.
 
 ```json
 {
@@ -138,43 +139,41 @@ Write this file before running the script:
   "role_title": "Accounting Specialist",
   "date": "2026-04-25",
   "scores": {
-    "D10": "Completed ",
-    "D11": "Completed ",
-    "D13": "Completed ",
-    "D14": "Completed ",
+    "D10": "Completed",
+    "D11": "Completed",
+    "D13": "Completed",
+    "D14": "Completed",
     "D15": "Rework",
-    "D16": "Completed ",
-    "D17": "Completed ",
-    "D19": "Pending ",
+    "D16": "Completed",
+    "D17": "Completed",
+    "D19": "Pending",
     "D20": "Rework",
-    "D22": "Completed ",
-    "D23": "Completed ",
-    "D24": "Completed ",
+    "D22": "Completed",
+    "D23": "Completed",
+    "D24": "Completed",
     "D26": "Rework",
     "D27": "Rework",
     "D28": "Rework",
-    "D30": "Completed ",
-    "D31": "Completed ",
-    "D33": "Pending ",
+    "D30": "Completed",
+    "D31": "Completed",
+    "D33": "Rework",
     "D34": "Rework",
     "D35": "Rework",
-    "D36": "Pending "
+    "D36": "Pending"
   },
   "notes": {
     "E15": "No reporting line identified — add manager or supervisor title",
+    "E19": "Slightly under target; add one bullet to reach the 6–10 range",
     "E20": "Rewrite bullets to lead with outcomes rather than tasks",
     "E26": "Add a distinct Preferred Qualifications section separate from Required",
     "E27": "Note preferred industry experience (e.g., construction, services)",
     "E28": "Consider listing preferred certifications",
-    "E33": "TBD is not a range — replace with a salary band when available",
+    "E33": "Replace vague language with a defined salary range or band",
     "E34": "Confirm and document whether a bonus or commission applies",
     "E35": "Describe key benefits (health, PTO, etc.) to improve candidate appeal"
-  },
-  "overall_rating": "Not Approved - Reworked"
+  }
 }
 ```
-
-Note the trailing spaces on `Completed ` and `Pending ` — these must match the dropdown values exactly or Excel will display them as plain text outside the data validation.
 
 ---
 
@@ -184,4 +183,4 @@ After processing all files, produce a summary table in the conversation:
 
 | File | Client | Role | Rating | Completed | Pending | Rework |
 |------|--------|------|--------|-----------|---------|--------|
-| Absco - Accounting Specialist.docx | Absco Solutions | Accounting Specialist | Not Approved — Reworked | 11 | 3 | 7 |
+| Absco - Accounting Specialist.docx | Absco Solutions | Accounting Specialist | Not Approved - Reworked | 11 | 2 | 8 |
