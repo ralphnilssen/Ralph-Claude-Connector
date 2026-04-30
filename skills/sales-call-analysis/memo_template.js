@@ -16,6 +16,8 @@
  *   body(text, opts)          — Body paragraph
  *   bullet(text)              — Bulleted list item
  *   skillTable(rows)          — 3-column skill table; rows = [[skill, rating, observation], ...]
+ *   trendTable(rows, labels)  — 6-column intra-run trend table; rows = [[skill, w1, w2, w3, w4, trend], ...]; labels = ["Apr 2-8", ...]
+ *   weeklyVolumeTable(weeks)  — 3-row, N-column volume strip; weeks = [{num, label, count}, ...]; typically 6 entries
  *   interventionTable(rows)   — 3-column intervention table; rows = [[num, topic, objective], ...]
  *   memoHeaderTable()         — TO / FROM / DATE / SUBJECT block (update values below)
  *
@@ -173,6 +175,112 @@ function skillTable(rows) {
     width: { size: 9360, type: WidthType.DXA },
     columnWidths: COL,
     rows: [headerRow, ...dataRows],
+  });
+}
+
+// ── Trend table (intra-run skill progression) ─────────────────────────────────
+// rows: array of [skill, w1Rating, w2Rating, w3Rating, w4Rating, trend] strings.
+// Each rating cell may be "" or "—" for insufficient buckets. Trend is "+N", "−N", "0", or "—".
+// bucketLabels: optional array of 4 strings used for header row, e.g., ["Apr 2-8","Apr 9-15",...].
+// Falls back to "Week 1"…"Week 4" if labels not provided.
+function trendTable(rows, bucketLabels) {
+  const COL = [2400, 1320, 1320, 1320, 1320, 1680];
+  const labels = (bucketLabels && bucketLabels.length === 4)
+    ? bucketLabels
+    : ["Week 1", "Week 2", "Week 3", "Week 4"];
+  const hdrCells = [
+    new TableCell({
+      borders, width: { size: COL[0], type: WidthType.DXA },
+      shading: { fill: GRAY_LT, type: ShadingType.CLEAR },
+      margins: { top: 80, bottom: 80, left: 120, right: 120 },
+      children: [p([run("Skill", { bold: true, size: 18 })])]
+    }),
+    ...labels.map((lbl, i) => new TableCell({
+      borders, width: { size: COL[i + 1], type: WidthType.DXA },
+      shading: { fill: GRAY_LT, type: ShadingType.CLEAR },
+      margins: { top: 80, bottom: 80, left: 60, right: 60 },
+      children: [p([run(lbl, { bold: true, size: 18 })], { alignment: AlignmentType.CENTER })]
+    })),
+    new TableCell({
+      borders, width: { size: COL[5], type: WidthType.DXA },
+      shading: { fill: GRAY_LT, type: ShadingType.CLEAR },
+      margins: { top: 80, bottom: 80, left: 120, right: 120 },
+      children: [p([run("Trend", { bold: true, size: 18 })], { alignment: AlignmentType.CENTER })]
+    })
+  ];
+  const headerRow = new TableRow({ tableHeader: true, children: hdrCells });
+
+  const dataRows = rows.map((r) => {
+    const [skill, w1, w2, w3, w4, trend] = r;
+    return new TableRow({
+      children: [
+        new TableCell({
+          borders, width: { size: COL[0], type: WidthType.DXA },
+          margins: { top: 80, bottom: 80, left: 120, right: 120 },
+          children: [p([run(skill, { size: 18 })])]
+        }),
+        ...[w1, w2, w3, w4].map((rating, i) => new TableCell({
+          borders, width: { size: COL[i + 1], type: WidthType.DXA },
+          margins: { top: 80, bottom: 80, left: 60, right: 60 },
+          children: [p([run(rating || "—", { size: 18 })], { alignment: AlignmentType.CENTER })]
+        })),
+        new TableCell({
+          borders, width: { size: COL[5], type: WidthType.DXA },
+          margins: { top: 80, bottom: 80, left: 120, right: 120 },
+          children: [p([run(trend || "—", { bold: true, size: 18 })], { alignment: AlignmentType.CENTER })]
+        }),
+      ]
+    });
+  });
+
+  return new Table({
+    width: { size: 9360, type: WidthType.DXA },
+    columnWidths: COL,
+    rows: [headerRow, ...dataRows],
+  });
+}
+
+// ── Weekly volume table (per rep, 6 weeks) ────────────────────────────────────
+// weeks: [{ num: 13, label: "Mar 22-28", count: 0 }, ...]  (typically 6 entries)
+// Renders a 3-row band: Week N (bold), date range (smaller), count (large).
+function weeklyVolumeTable(weeks) {
+  const n = weeks.length;
+  const colWidth = Math.floor(9360 / n);
+  const COL = Array(n).fill(colWidth);
+
+  const weekRow = new TableRow({
+    tableHeader: true,
+    children: weeks.map((w, i) => new TableCell({
+      borders, width: { size: COL[i], type: WidthType.DXA },
+      shading: { fill: GRAY_LT, type: ShadingType.CLEAR },
+      margins: { top: 60, bottom: 20, left: 40, right: 40 },
+      children: [p([run(`Week ${w.num}`, { bold: true, size: 18 })],
+        { alignment: AlignmentType.CENTER })]
+    }))
+  });
+  const dateRow = new TableRow({
+    tableHeader: true,
+    children: weeks.map((w, i) => new TableCell({
+      borders, width: { size: COL[i], type: WidthType.DXA },
+      shading: { fill: GRAY_LT, type: ShadingType.CLEAR },
+      margins: { top: 0, bottom: 60, left: 40, right: 40 },
+      children: [p([run(w.label, { size: 16, color: "555555" })],
+        { alignment: AlignmentType.CENTER })]
+    }))
+  });
+  const countRow = new TableRow({
+    children: weeks.map((w, i) => new TableCell({
+      borders, width: { size: COL[i], type: WidthType.DXA },
+      margins: { top: 80, bottom: 80, left: 40, right: 40 },
+      children: [p([run(String(w.count), { bold: true, size: 22 })],
+        { alignment: AlignmentType.CENTER })]
+    }))
+  });
+
+  return new Table({
+    width: { size: 9360, type: WidthType.DXA },
+    columnWidths: COL,
+    rows: [weekRow, dateRow, countRow],
   });
 }
 
