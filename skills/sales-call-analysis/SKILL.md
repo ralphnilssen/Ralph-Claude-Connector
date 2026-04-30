@@ -1,24 +1,20 @@
 ---
 name: sales-call-analysis
-description: Analyze DOXA sales call data and generate a Word memo (.docx) scoring each rep using Mark Roberge's Sales Acceleration Formula framework. Use this skill whenever the user says things like "run the sales analysis," "run the sales coaching memo," "grade my reps," "Roberge analysis," "analyze the calls," "#salescoaching," "review my transcripts," "score my reps," or any request for sales coaching analysis, performance review, or "how are my salespeople doing." Three ingestion modes: ZOOM_API_MODE (default, pulls ZRA analytics and VTT transcripts directly), UPLOAD_MODE (reads .txt files uploaded to chat), ONEDRIVE_MODE (fallback when user says "use OneDrive" or "old method"). Apply a date-range filter only when the user explicitly scopes the request (for example "just April calls," "last week only," "past 14 days"); API mode defaults to the past 30 days. Do not wait for the user to say "skill"; any sales coaching request routes here.
+description: Analyze DOXA sales call data and generate a Word memo (.docx) scoring each rep using Mark Roberge's Sales Acceleration Formula framework. Use this skill whenever the user says things like "run the sales analysis," "run the sales coaching memo," "grade my reps," "Roberge analysis," "analyze the calls," "#salescoaching," "review my transcripts," "score my reps," or any request for sales coaching analysis, performance review, or "how are my salespeople doing." Pulls ZRA analytics and VTT transcripts directly from the Zoom API via Server-to-Server OAuth. Apply a date-range filter only when the user explicitly scopes the request (for example "just April calls," "last week only," "past 14 days"); defaults to the past 30 days. Do not wait for the user to say "skill"; any sales coaching request routes here.
 ---
 
 # Sales Call Analysis
 
 ## What this skill does
 
-Reads DOXA sales call data, analyzes each representative using Mark Roberge's Sales Acceleration Formula (SAF) framework, and produces a professional Word memo (.docx). Three ingestion modes are supported:
+Reads DOXA sales call data, analyzes each representative using Mark Roberge's Sales Acceleration Formula (SAF) framework, and produces a professional Word memo (.docx). Pulls conversations, ZRA analytics, summaries, and VTT transcripts directly from the Zoom API via a Server-to-Server OAuth app. Cross-rep admin access, no permission blockers, single source of truth.
 
-- **ZOOM_API_MODE (default)**: Pulls conversations, ZRA analytics, summaries, and VTT transcripts directly from the Zoom API via a Server-to-Server OAuth app. Cross-rep admin access, no permission blockers, single source of truth.
-- **UPLOAD_MODE**: Reads .txt transcript files the user has uploaded to the chat. Used for ad hoc analysis of transcripts outside the standard archive.
-- **ONEDRIVE_MODE (fallback)**: Pulls .txt transcripts from Ralph's SharePoint path `Sales/Zoom Transcripts/`. Used only when explicitly requested or when ZOOM_API_MODE fails (token, scope, or licensing issue).
-
-Output format is identical across modes: one page per rep, a team-level observations page, a recommended interventions table, and a leadership evaluation page for Ralph Nilssen.
+Output: one page per rep, a team-level observations page, a recommended interventions table, and a leadership evaluation page for Ralph Nilssen.
 
 Transcript record shape (canonical, all modes converge here before scoring):
 ```
 RepSlug/<conversation-id>.txt        ← speaker-tagged transcript
-RepSlug/<conversation-id>.meta.json  ← ZRA analytics + deal + topics + summary (api mode only)
+RepSlug/<conversation-id>.meta.json  ← ZRA analytics + deal + topics + summary
 ```
 
 Transcript line format (used by Step 8 ingest and Step 9 scoring):
@@ -28,34 +24,15 @@ Transcript line format (used by Step 8 ingest and Step 9 scoring):
 
 ---
 
-## Step 0: Detect Source Mode
+## Step 0: Confirm Source Mode
 
-Before loading any tools, run mode detection:
+This skill runs in ZOOM_API_MODE exclusively. State: "Pulling from the Zoom API." Then proceed to Step 1.
 
-```bash
-ls /mnt/user-data/uploads/*.txt 2>/dev/null | wc -l
-```
-
-Mode selection:
-
-| Condition | Mode |
-|---|---|
-| One or more .txt files in `/mnt/user-data/uploads/` | UPLOAD_MODE |
-| User explicitly said "OneDrive," "use SharePoint," "old method," or "fall back" | ONEDRIVE_MODE |
-| Otherwise (default) | ZOOM_API_MODE |
-
-State the active mode in one short line:
-- ZOOM_API_MODE: "Pulling from the Zoom API."
-- UPLOAD_MODE: "Analyzing the N .txt files you uploaded."
-- ONEDRIVE_MODE: "Falling back to OneDrive transcripts."
-
-Do not narrate the detection itself.
+Do not narrate the mode detection.
 
 ---
 
 ## Step 1: Load API Credentials and Helpers
-
-### ZOOM_API_MODE
 
 Read Zoom credentials via the Filesystem tool from:
 ```
@@ -72,7 +49,7 @@ Expected shape:
 ```
 
 If the file is missing or any of the three fields is empty, halt and tell the user:
-> "Zoom API credentials not configured. Create `C:\Users\RalphNilssen\Obsidian\Claude\reference\zoom_api.json` with `account_id`, `client_id`, and `client_secret` from the Server-to-Server OAuth app, or say 'use OneDrive' to fall back."
+> "Zoom API credentials not configured. Create `C:\Users\RalphNilssen\Obsidian\Claude\reference\zoom_api.json` with `account_id`, `client_id`, and `client_secret` from the Server-to-Server OAuth app."
 
 After reading the credentials, write them to a session-scoped path the helper script can read:
 ```bash
@@ -89,17 +66,6 @@ cp scripts/zoom_client.py /home/claude/zoom_client.py
 ```
 
 The helper exposes a `ZoomClient` class and a CLI. The skill primarily uses it as a module via inline Python in `bash_tool`. Set `ZOOM_CONFIG_PATH=/home/claude/zoom_api.json` for any invocation.
-
-### UPLOAD_MODE and ONEDRIVE_MODE
-
-Microsoft 365 MCP tools are deferred. Call `tool_search` with query `"sharepoint onedrive folder search files"` to load:
-- `microsoft-365:sharepoint_folder_search`
-- `microsoft-365:sharepoint_search`
-- `microsoft-365:read_resource`
-
-UPLOAD_MODE still loads these so Step 4 can enumerate OneDrive transcripts if the user later expands scope.
-
-Load silently. Do not narrate.
 
 ---
 
@@ -121,10 +87,10 @@ Wait for confirmation or correction before proceeding.
 **Key fields used downstream:**
 - `manager.name`, `manager.email` — used in internal-only filter (Ralph's emails/names are always treated as internal)
 - `team_members[].name`, `.zoom_display_names[]` — used for speaker attribution (fuzzy match in transcript and participant list)
-- `team_members[].email` — REQUIRED in ZOOM_API_MODE for user resolution. If missing, halt and ask.
+- `team_members[].email` — REQUIRED for user resolution. If missing, halt and ask.
 - `team_members[].compliance_recording_required` — triggers red callout if recording gap
-- `internal_meeting_patterns.topic_regex_exclude[]` — applied to conversation_topic (api) or filename (file modes)
-- `internal_meeting_patterns.min_duration_minutes` — derived from duration_sec (api) or timestamp span (file modes)
+- `internal_meeting_patterns.topic_regex_exclude[]` — applied to `conversation_topic`
+- `internal_meeting_patterns.min_duration_minutes` — derived from `duration_sec`
 
 ---
 
@@ -146,8 +112,8 @@ Scorecard schema (read and write format):
 ```json
 {
   "run_date": "YYYY-MM-DD",
-  "scope": "past 30 days | YYYY-MM-DD to YYYY-MM-DD | uploaded set | full archive",
-  "mode": "ZOOM_API_MODE | UPLOAD_MODE | ONEDRIVE_MODE",
+  "scope": "past 30 days | YYYY-MM-DD to YYYY-MM-DD",
+  "mode": "ZOOM_API_MODE",
   "roster_filter": {
     "groups": ["Biz Dev Officers", "Franchisees"],
     "names":  ["Michael Ross"]
@@ -206,13 +172,9 @@ A bucket entry inside `bucket_scores` may be `"insufficient": true` (less than 3
 
 ## Step 3: Confirm Scope
 
-**UPLOAD_MODE**: Skip scope confirmation. The uploaded files ARE the scope. State: "Analyzing the N uploaded transcripts." Proceed to Step 4.
+Default scope is the **past 30 days** (rolling window from today). State: "Pulling the past 30 days of ZRA conversations across the team." Proceed to Step 4 unless the user scoped differently in their original request.
 
-**ZOOM_API_MODE**: Default scope is the **past 30 days** (rolling window from today). State: "Pulling the past 30 days of ZRA conversations across the team." Proceed to Step 4 unless the user scoped differently in their original request.
-
-**ONEDRIVE_MODE**: Default reads every transcript in the Zoom Transcripts tree. State: "Scanning the full OneDrive Zoom Transcripts archive."
-
-If the user scoped the request (any mode):
+If the user scoped the request:
 - Accept natural language and convert to a UTC date range
 - Default timezone: `America/Chicago` (Maplewood, MN); only ask if ambiguous
 - Store the range for use in Step 4 and downstream framing
@@ -246,10 +208,8 @@ Each bucket is scored independently in Step 9. A bucket needs at least **3 calls
 ### State scope summary
 
 State one of:
-- ZOOM_API_MODE unscoped: "Pulling the past 30 days of ZRA conversations for [N] reps in scope."
-- ZOOM_API_MODE scoped: "Pulling ZRA conversations between [start] and [end] for [N] reps in scope."
-- ONEDRIVE_MODE unscoped: "Scanning the full OneDrive Zoom Transcripts archive for [N] reps in scope."
-- ONEDRIVE_MODE scoped: "Scanning OneDrive for transcripts modified between [start] and [end] for [N] reps in scope."
+- Unscoped: "Pulling the past 30 days of ZRA conversations for [N] reps in scope."
+- Scoped: "Pulling ZRA conversations between [start] and [end] for [N] reps in scope."
 
 ---
 
@@ -310,37 +270,9 @@ PY
 
 The list response already carries headline metrics (engagement_score, sentiment_score, engaging_questions_count, next_steps_count, filler_words_count, duration_sec, topic_mentioned, conversation_topic, meeting_start_time, meeting_uuid, host_email). No deep pull required at this stage.
 
-### UPLOAD_MODE
+### Volume cap
 
-```bash
-ls /mnt/user-data/uploads/*.txt | sort
-```
-Count the files. Rep attribution runs in this order:
-1. Filename pattern, e.g., `RecordingTranscript - <Rep Name> - <topic>.txt`
-2. Opening transcript lines (first 30-50 speaker tags) if filename is ambiguous
-
-Fuzzy-match candidate rep names to the team roster using `team_members[].name` and `.zoom_display_names[]`. Handle name variants (e.g., "Vince Azanza" ↔ "Vincent Azanza", "Crystal" ↔ "Crystal Ware"). If no confident match, flag the file as "Unattributed" and ask the user before assigning.
-
-### ONEDRIVE_MODE
-
-Use `sharepoint_search`:
-```
-sharepoint_search(query: "RecordingTranscript", fileType: "txt", limit: 50)
-```
-
-If scoped:
-```
-sharepoint_search(query: "RecordingTranscript", fileType: "txt",
-                  afterDateTime: <range-start-UTC>,
-                  beforeDateTime: <range-end-UTC>,
-                  limit: 50)
-```
-
-Paginate with `offset`. Filter results to `Sales/Zoom Transcripts/`. Extract rep name from the `webUrl` path segment immediately before the filename.
-
-### Volume cap (all modes)
-
-After classification (Step 5) and speaker filtering (Step 6), if the candidate prospect set exceeds 100, keep only the 100 most recent by start time (descending). Drop the rest silently from the analysis set but surface the cap in the Step 7 classification display and again in the memo preamble (e.g., "Capped at the 100 most recent prospect conversations out of N total"). Team Trainings / LEADERSHIP_EVAL files are not subject to the cap. UPLOAD_MODE has no cap; the user has already curated the set.
+After classification (Step 5) and speaker filtering (Step 6), if the candidate prospect set exceeds 100, keep only the 100 most recent by start time (descending). Drop the rest silently from the analysis set but surface the cap in the Step 7 classification display and again in the memo preamble (e.g., "Capped at the 100 most recent prospect conversations out of N total"). Team Trainings / LEADERSHIP_EVAL files are not subject to the cap.
 
 ---
 
@@ -349,18 +281,13 @@ After classification (Step 5) and speaker filtering (Step 6), if the candidate p
 Apply classification in this order:
 
 1. **Training content** → LEADERSHIP_EVAL (feeds Step 11 only, not rep scoring).
-   - ZOOM_API_MODE: `conversation_topic` matches `team training`, `weekly call`, `coaching`, or similar training indicators (case-insensitive).
-   - ONEDRIVE_MODE: path contains `/Team Trainings/`.
-   - UPLOAD_MODE: filename contains "training," "team training," "weekly call," or similar. If ambiguous, ask the user.
+   - `conversation_topic` matches `team training`, `weekly call`, `coaching`, or similar training indicators (case-insensitive).
 2. **Internal meeting** → INTERNAL, exclude.
-   - ZOOM_API_MODE: `conversation_topic` matches any `internal_meeting_patterns.topic_regex_exclude` pattern (e.g., 1:1, sync, huddle, L10, MBR, "Personal Meeting Room").
-   - File modes: filename matches the same patterns.
-3. **Sub-threshold** → SKIP (api mode only).
+   - `conversation_topic` matches any `internal_meeting_patterns.topic_regex_exclude` pattern (e.g., 1:1, sync, huddle, L10, MBR, "Personal Meeting Room").
+3. **Sub-threshold** → SKIP.
    - `duration_sec < 300` (5 minutes) AND `engagement_score == 0` AND no summary text. These are no-shows or test calls. Surface count in Step 7 but exclude from analysis.
 4. **Otherwise** → candidate PROSPECT call.
-   - ZOOM_API_MODE: rep attribution = `host_email` matched to roster `team_members[].email`.
-   - ONEDRIVE_MODE: rep attribution = parent folder name, fuzzy-matched to roster.
-   - UPLOAD_MODE: rep attribution already resolved in Step 4.
+   - Rep attribution = `host_email` matched to roster `team_members[].email`.
 
 After initial classification, apply the speaker-based filter in Step 6.
 
@@ -368,10 +295,7 @@ After initial classification, apply the speaker-based filter in Step 6.
 
 ## Step 6: Speaker Filter — "Sole External Party" Rule
 
-For each candidate PROSPECT conversation, extract the unique list of participants:
-
-- ZOOM_API_MODE: derive from the embedded `participants[]` field after the deep pull (Step 8). If the deep pull has not run yet, defer this rule until Step 8 completes. (To avoid the dependency, the deep pull can be issued before final classification — see Step 8.)
-- File modes: scan the transcript for unique `[SpeakerName]` tags.
+For each candidate PROSPECT conversation, extract the unique list of participants from the embedded `participants[]` field after the deep pull (Step 8). If the deep pull has not run yet, defer this rule until Step 8 completes. (To avoid the dependency, the deep pull can be issued before final classification — see Step 8.)
 
 Match each participant or speaker to the team roster using fuzzy name matching (first name + last name, handle first-name-only aliases per `zoom_display_names`, handle "Last, First" variants, match `manager.name` for Ralph). Note transcript bot artifacts (e.g., `read.ai meeting notes`, `Fathom Notetaker`, `Otter.ai`) do not count as external participants — strip them before evaluating the rule.
 
@@ -385,7 +309,7 @@ This implements "exclude when I am the sole external party" — no prospect pres
 
 Display two tables to the user before pulling full content:
 
-**Prospect Conversations** (N): rep, date, conversation_topic, duration, engagement_score (api mode), external participants
+**Prospect Conversations** (N): rep, date, conversation_topic, duration, engagement_score, external participants
 **Excluded** (M): topic/filename, reason (internal / training / sub-threshold / speaker-only-internal)
 
 If the 100-conversation cap was applied in Step 4, state it explicitly above the Prospect Conversations table:
@@ -402,8 +326,6 @@ Also report:
 ---
 
 ## Step 8: Pull Full Content
-
-### ZOOM_API_MODE
 
 For each confirmed PROSPECT and LEADERSHIP_EVAL conversation, do a single deep pull plus a VTT transcript fetch. Save both to disk for reuse.
 
@@ -443,14 +365,6 @@ PY
 
 Each conversation produces two files: `<id>.meta.json` (ZRA analytics) and `<id>.txt` (transcript). Step 9 reads both. If a VTT is unavailable for a given conversation, score from the meta only and note the data limitation in the rep's profile narrative.
 
-### ONEDRIVE_MODE
-
-For each confirmed PROSPECT and LEADERSHIP_EVAL file, call `read_resource` with its URI to get full content. Save full transcripts locally to `/home/claude/transcripts/<rep-slug>/<filename>`.
-
-### UPLOAD_MODE
-
-Files are already local in `/mnt/user-data/uploads/`. Copy them to `/home/claude/transcripts/<rep-slug>/<filename>` for consistency.
-
 ### Culture Index PDFs
 
 If the user has uploaded any CI PDFs in this chat session or they exist in the Sales folder, read them and use for coaching framing only. Do not reference CI or the framework in output.
@@ -481,7 +395,7 @@ Use no other rating words. "Gap" means no evidence of the skill was found — ca
 
 ### Use ZRA signals where they earn it
 
-In ZOOM_API_MODE, the meta.json carries pre-computed signal that maps cleanly onto several dimensions. Use it as quantitative grounding alongside transcript evidence — never as the sole basis for a rating.
+The meta.json carries pre-computed signal that maps cleanly onto several dimensions. Use it as quantitative grounding alongside transcript evidence — never as the sole basis for a rating.
 
 | Dimension | Primary signal source | ZRA grounding (when available) |
 |---|---|---|
@@ -570,8 +484,8 @@ Divider
 Memo header table (TO / FROM / DATE / SUBJECT)
 Divider
 Preamble paragraph (N conversations, source statement, scope statement, framework note)
-  ← source statement: "from the Zoom API," "from uploaded files," or "from OneDrive"
-  ← scope statement: "past 30 days" (api default), date range (scoped), "uploaded set" (upload mode), or "full archive" (onedrive default)
+  ← source statement: "from the Zoom API"
+  ← scope statement: "past 30 days" (default) or date range (scoped run)
   ← if cap applied in Step 4, append: "Analysis covers the 100 most recent prospect conversations out of N total candidates."
 spacer()
 subHead("Ratings Key")
@@ -580,7 +494,7 @@ spacer()
 
 pageBreak() + sectionHead("Rep Name — Role")   ← every rep including the first
   body()  ← "Calls reviewed: N prospect calls" + scope suffix
-           ← scope suffix: "" (empty) if upload, " in the past 30 days" (api default), " from [date range]" (scoped), " in the archive" (onedrive default)
+           ← scope suffix: " in the past 30 days" (default) or " from [date range]" (scoped)
   weeklyVolumeTable(rep["weekly_volume"])   ← last 6 Sun-Sat weeks; counts of scored prospect calls
   spacer()
   [compliance callout paragraph if applicable]
@@ -633,7 +547,7 @@ body(
 )
 ```
 
-Phrase the comparison to match the scope: "in the past 30 days" (api default), "over the same period" (date-scoped runs), "in the uploaded set" (upload mode), "in the archive" (onedrive default).
+Phrase the comparison to match the scope: "in the past 30 days" (default) or "over the same period" (date-scoped runs).
 
 The final coaching bullet for that rep should be a compliance bullet — a company expectation to confirm and track in the next 1:1, not a coaching conversation.
 
@@ -693,7 +607,7 @@ Evaluates Ralph Nilssen based on evidence from (a) Team Trainings transcripts ca
 
 After the skill table, write a "Leadership Coaching Priority" section with 2-3 specific, actionable recommendations for Ralph — framed as peer coaching. Each bullet 30-day implementable.
 
-If LEADERSHIP_EVAL transcripts are absent (common in upload mode where the user did not include training files), note the data boundary explicitly and score only dimensions that can be inferred from field-call evidence. Mark the others as "Gap — no training evidence in this set."
+If LEADERSHIP_EVAL transcripts are absent, note the data boundary explicitly and score only dimensions that can be inferred from field-call evidence. Mark the others as "Gap — no training evidence in this set."
 
 ---
 
@@ -732,10 +646,6 @@ Create the folder if it does not exist. Write silently — do not narrate.
 ## Step 13: Deliver and Summarize
 
 Present the file. Then give a 3-5 sentence summary: who is strongest, what the collective weakness is, and the single highest-leverage coaching action. Include total conversations analyzed and the scope used.
-
-- **ZOOM_API_MODE**: file is delivered ready. No further action required.
-- **UPLOAD_MODE**: file is delivered ready.
-- **ONEDRIVE_MODE**: close with a reminder to drag the output file into the OneDrive Sales folder (no OneDrive write tool available).
 
 ---
 
@@ -786,7 +696,7 @@ Three sub-sections, 3-5 sentences each, citing rep names and specific call examp
 
 | Symptom | Likely Cause | Recovery |
 |---|---|---|
-| `zoom_api.json` missing or empty fields | First run, file deleted, or rotated and not updated | Halt; ask user to populate the file or say "use OneDrive". |
+| `zoom_api.json` missing or empty fields | First run, file deleted, or rotated and not updated | Halt; ask user to populate the credentials file. |
 | Token request returns 4xx | Client Secret rotated and `zoom_api.json` not updated; or app deactivated | Halt; tell user to confirm app is active in Zoom Marketplace and update credentials file. |
 | `resolve_user` raises `User not found` | Roster email does not match a Zoom account email | Skip the rep; report missing reps in Step 7 confirmation; ask user to correct roster email. |
 | Roster file does not include `group` field | Older team_structure.json schema | Match by `ROSTER_NAMES` only; surface a one-line note in Step 7. |
@@ -797,13 +707,8 @@ Three sub-sections, 3-5 sentences each, citing rep names and specific call examp
 | `processing_analysis: true` on a recent call | ZRA hasn't finished processing | Skip those calls; surface count in Step 7 ("X conversations still processing — re-run later"). |
 | `engagement_score == 0` and `sentiment_score == 0` and no summary | Sub-threshold call (no-show, very short) | Already handled in Step 5 classification rule 3. Drop and surface count. |
 | VTT transcript fetch returns None | Recording not yet processed, or transcript not enabled for that meeting | Score from meta.json only; note data limitation in rep narrative. |
-| `sharepoint_search` returns no transcripts in range (ONEDRIVE_MODE) | No calls recorded or date range too tight | Show user the date range used, confirm, suggest widening. |
-| No files in `/mnt/user-data/uploads/` in upload mode | User referred to uploads but none are present | Tell user no uploads detected; ask whether to switch to ZOOM_API_MODE. |
-| Rep folder name doesn't match any roster entry (file modes) | Folder rename or new hire not in roster | Flag to user, ask whether to add to roster or treat as unknown. |
 | Speaker name in transcript unmatched | Prospect or unknown participant | Treat as external (not internal), keep the call as prospect. |
 | Zero prospect conversations after filter | All conversations were internal/training, or scope too tight | Show the exclusion list and ask whether to reclassify or widen scope. |
-| Transcript has timestamps but no speaker tags | Different export format | Read it anyway; skip speaker filter for that file; note in output. |
-| `read_resource` fails on a URI (ONEDRIVE_MODE) | Auth or permissions issue | Skip the file, note in output, continue. |
 | Team structure file missing from Obsidian | File was deleted or path changed | Ask user to paste the roster in chat; note path is `C:\Users\RalphNilssen\Obsidian\Claude\reference\project_team_structure.json`. |
 
 ---
@@ -811,7 +716,6 @@ Three sub-sections, 3-5 sentences each, citing rep names and specific call examp
 ## What this skill does NOT do
 
 - Modify Zoom recordings or settings
-- Write files back to OneDrive (no write tool available; user drags manually)
 - Modify team structure (user edits `project_team_structure.json` directly)
 - Score calls flagged as still-processing in ZRA (skipped, surfaced for re-run)
 - Pull comments, scorecards, or CRM associations beyond what is exposed in the deep pull (additional scopes would be required)
