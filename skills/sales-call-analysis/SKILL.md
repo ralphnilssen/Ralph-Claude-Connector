@@ -18,7 +18,7 @@ Transcript structure in OneDrive:
 ```
 Sales/Zoom Transcripts/
 ├── Biz Dev Officers/     ← BDRs (Phil Wolfe, Lara Forchuk)
-├── Client Success/       ← Account Managers (Naji Kubon, Michael Ross)
+├── Client Success/       ← Account Managers (Michael Ross)
 ├── Franchisees/          ← 1099 sellers (Crystal, Ivette, Mike, Montoya, Nicole, Vince)
 └── Team Trainings/       ← Fuels the Leadership Evaluation only
 ```
@@ -58,15 +58,19 @@ The Microsoft 365 MCP tools are deferred. Call `tool_search` with query `"sharep
 
 Load silently. Do not narrate.
 
-UPLOAD_MODE still loads these tools so Step 2 can read the team structure file from OneDrive. If SharePoint is unreachable, Step 2 has a fallback path.
+UPLOAD_MODE still loads these tools so Step 4 can enumerate OneDrive transcripts if needed. In UPLOAD_MODE the team structure is read locally (Step 2), so SharePoint being unreachable does not block that step.
 
 ---
 
 ## Step 2: Load Team Structure
 
-The team structure lives in OneDrive and is the authoritative source regardless of mode. Read `project_team_structure.json` from the OneDrive Sales folder root. Use `sharepoint_search` with `query: "project_team_structure"` and `fileType: "json"`, then `read_resource` on the returned URI.
+The team structure file is the authoritative source regardless of mode. Read it from the local Obsidian reference folder using the Filesystem tool:
 
-If the file is missing or SharePoint is unavailable, ask the user to paste the roster in chat. Do not invent a roster.
+```
+C:\Users\RalphNilssen\Obsidian\Claude\reference\project_team_structure.json
+```
+
+If the file is missing or unreadable, ask the user to paste the roster in chat. Do not invent a roster.
 
 Parse and display a compact summary (name / role / group) and ask:
 > "Is this team structure still accurate?"
@@ -80,6 +84,49 @@ Wait for confirmation or correction before proceeding.
 - `team_members[].compliance_recording_required` — triggers red callout if recording gap
 - `internal_meeting_patterns.topic_regex_exclude[]` — applied to filename matching
 - `internal_meeting_patterns.min_duration_minutes` — derived from timestamp span
+
+---
+
+## Step 2b: Load Prior Scorecard
+
+Check for existing scorecards in the persistent output folder using the Filesystem tool:
+
+```
+C:\Users\RalphNilssen\Obsidian\Claude\outputs\sales-analysis\
+```
+
+List all `.json` files in that folder. Sort by filename descending (filenames are date-prefixed: `YYYY-MM-DD-scorecard.json`). Read the most recent one.
+
+If a prior scorecard is found, store it as `PRIOR_SCORECARD` for use in Step 10. Load silently — do not surface to the user.
+
+If the folder is empty or does not exist, set `PRIOR_SCORECARD = null`. The delta section in Step 10 will be skipped for this run.
+
+Scorecard schema (read and write format):
+```json
+{
+  "run_date": "YYYY-MM-DD",
+  "scope": "full archive | YYYY-MM-DD to YYYY-MM-DD | uploaded set",
+  "reps": [
+    {
+      "name": "Rep Name",
+      "role": "BDR | Account Manager | Seller",
+      "transcript_count": 4,
+      "scores": {
+        "Rapport / Relationship": "Strong",
+        "Discovery": "Developing",
+        "Qualification": "Good",
+        "Product Knowledge": "Strong",
+        "Value Articulation": "Adequate",
+        "Call Control": "Good",
+        "Objection / Friction Handling": "Weak",
+        "Closing / Forward Motion": "Developing"
+      }
+    }
+  ]
+}
+```
+
+For reps scored under the limited-data format (fewer than 2 transcripts), omit the `scores` object and set `"limited_data": true`. These reps are excluded from delta comparison.
 
 ---
 
@@ -273,6 +320,8 @@ pageBreak() + sectionHead("Rep Name — Role")   ← every rep including the fir
   subHead("Coaching Priority")
   bullet() x 2-3
   spacer()
+  [delta section — see below]
+  spacer()
 
 pageBreak() + sectionHead("Team-Level Observations")
   subHead("What Is Working")    body()
@@ -318,6 +367,42 @@ In upload mode, the compliance comparison base is narrower (only the uploaded fi
 
 Specific, evidence-grounded, implementable within 30 days. Guidance for the manager reading the memo — how to frame the conversation, what to focus on, what to watch for. When behavioral pattern knowledge is available (CI or repeated call observation), use it to inform framing without labeling it.
 
+### Delta section — Progress Since Last Run
+
+Appears at the bottom of each rep page, after Coaching Priority. Controlled by `PRIOR_SCORECARD`.
+
+**If `PRIOR_SCORECARD = null`:** Omit the section entirely for all reps. No placeholder, no mention.
+
+**If `PRIOR_SCORECARD` is present and contains a record for this rep:**
+
+Compare each of the 8 dimensions by rating. Use this ordering to determine direction:
+```
+Excellent > Very Strong > Strong > Good > Adequate > Developing > Weak > Gap
+```
+
+Classify each dimension as:
+- Improved: rating moved up one or more positions
+- Regressed: rating moved down one or more positions
+- Held: rating unchanged
+
+Build two lists — improved dimensions and not improved or regressed dimensions. Write them as two `subHead` / `bullet` blocks:
+
+```js
+subHead("Progress Since Last Run")
+body("Compared to run on [PRIOR_SCORECARD.run_date].")
+subHead("Improved")
+bullet() x N   // one per improved dimension, e.g., "Discovery: Developing → Good"
+subHead("Not Improved or Regressed")
+bullet() x N   // one per held or regressed dimension, with regression flagged explicitly
+spacer()
+```
+
+If all 8 dimensions held, write a single `body()` under "Not Improved or Regressed": "No movement across any scored dimension since last run."
+
+If a dimension is "Gap" in both runs, list it under "Not Improved or Regressed" without flagging it as a regression — insufficient data is not the same as decline.
+
+**If `PRIOR_SCORECARD` is present but contains no record for this rep** (new hire, or rep was absent from the prior run): write a single `body()` under the `subHead`: "No prior run data for this rep — delta will appear on next run."
+
 ---
 
 ## Step 11: Leadership Evaluation Page
@@ -353,6 +438,20 @@ node /home/claude/memo_output.js
 ```
 
 Copy the generated `.docx` to `/mnt/user-data/outputs/` and present it via `present_files`.
+
+Also copy the `.docx` to the persistent output folder using the Filesystem tool:
+```
+C:\Users\RalphNilssen\Obsidian\Claude\outputs\sales-analysis\YYYY-MM-DD DOXA Sales Analysis.docx
+```
+
+Then write the scorecard JSON to the same folder:
+```
+C:\Users\RalphNilssen\Obsidian\Claude\outputs\sales-analysis\YYYY-MM-DD-scorecard.json
+```
+
+Build the scorecard from the scores collected in Step 9. Use the schema defined in Step 2b. Set `run_date` to today's date, `scope` to the scope string from Step 3, and include one record per rep with their 8 dimension ratings and transcript count. For limited-data reps, set `limited_data: true` and omit `scores`.
+
+Create the folder if it does not exist. Write silently — do not narrate.
 
 ---
 
@@ -415,7 +514,8 @@ Three sub-sections, 3-5 sentences each, citing rep names and specific call examp
 | Zero prospect files after filter | All files were internal/training, or date range too tight | Show the exclusion list and ask whether to reclassify. |
 | Transcript has timestamps but no speaker tags | Different export format | Read it anyway; skip speaker filter for that file; note in output. |
 | `read_resource` fails on a URI | Auth or permissions issue | Skip the file, note in output, continue. |
-| SharePoint unreachable when loading team structure in upload mode | Transient auth or network issue | Ask user to paste the roster in chat; continue with the uploaded transcripts. |
+| Team structure file missing from Obsidian | File was deleted or path changed | Ask user to paste the roster in chat; note the correct path is `C:\Users\RalphNilssen\Obsidian\Claude\reference\project_team_structure.json` |
+| SharePoint unreachable when loading team structure in upload mode | No longer applicable — team structure is read locally | N/A |
 
 ---
 
