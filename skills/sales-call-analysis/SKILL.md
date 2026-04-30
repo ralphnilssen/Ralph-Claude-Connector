@@ -112,7 +112,7 @@ Scorecard schema (read and write format):
 ```json
 {
   "run_date": "YYYY-MM-DD",
-  "scope": "past 30 days | YYYY-MM-DD to YYYY-MM-DD",
+  "scope": "past 30 days | YYYY-MM-DD to YYYY-MM-DD | uploaded set | full archive",
   "mode": "ZOOM_API_MODE",
   "roster_filter": {
     "groups": ["Biz Dev Officers", "Franchisees"],
@@ -607,7 +607,7 @@ Evaluates Ralph Nilssen based on evidence from (a) Team Trainings transcripts ca
 
 After the skill table, write a "Leadership Coaching Priority" section with 2-3 specific, actionable recommendations for Ralph — framed as peer coaching. Each bullet 30-day implementable.
 
-If LEADERSHIP_EVAL transcripts are absent, note the data boundary explicitly and score only dimensions that can be inferred from field-call evidence. Mark the others as "Gap — no training evidence in this set."
+If LEADERSHIP_EVAL transcripts are absent (common in upload mode where the user did not include training files), note the data boundary explicitly and score only dimensions that can be inferred from field-call evidence. Mark the others as "Gap — no training evidence in this set."
 
 ---
 
@@ -696,7 +696,7 @@ Three sub-sections, 3-5 sentences each, citing rep names and specific call examp
 
 | Symptom | Likely Cause | Recovery |
 |---|---|---|
-| `zoom_api.json` missing or empty fields | First run, file deleted, or rotated and not updated | Halt; ask user to populate the credentials file. |
+| `zoom_api.json` missing or empty fields | First run, file deleted, or rotated and not updated | Halt; ask user to populate the file or say "use OneDrive". |
 | Token request returns 4xx | Client Secret rotated and `zoom_api.json` not updated; or app deactivated | Halt; tell user to confirm app is active in Zoom Marketplace and update credentials file. |
 | `resolve_user` raises `User not found` | Roster email does not match a Zoom account email | Skip the rep; report missing reps in Step 7 confirmation; ask user to correct roster email. |
 | Roster file does not include `group` field | Older team_structure.json schema | Match by `ROSTER_NAMES` only; surface a one-line note in Step 7. |
