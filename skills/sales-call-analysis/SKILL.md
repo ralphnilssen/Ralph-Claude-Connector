@@ -659,7 +659,7 @@ Present the file. Then give a 3-5 sentence summary: who is strongest, what the c
 
 | Table | Column widths | Notes |
 |---|---|---|
-| skillTable | [2520, 1620, 5940] | Skill / Rating / Key Observation |
+| skillTable | [2160, 1440, 5760] | Skill / Rating / Key Observation. Skill = LEFT, Rating = CENTER (h) + CENTER (v). Wide enough that "Very Strong" does not wrap. |
 | trendTable | [2400, 1320, 1320, 1320, 1320, 1680] | Skill / W1 / W2 / W3 / W4 / Trend (total 9360 DXA) |
 | weeklyVolumeTable | 6 equal columns of 1560 each | 3 rows: Week N (bold), date range (smaller, gray), count (large, bold). Total 9360 DXA. Rendered under "Calls reviewed" in each rep section. |
 | ratingsKeyTable | [1620, 8460] | Rating / Definition |

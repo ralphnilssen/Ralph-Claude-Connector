@@ -3,9 +3,9 @@ Zoom Server-to-Server OAuth client for the sales-call-analysis skill.
 
 Reads credentials from C:\\Users\\RalphNilssen\\Obsidian\\Claude\\reference\\zoom_api.json:
     {
-      "account_id":    "...",
-      "client_id":     "...",
-      "client_secret": "..."
+      "account_id":    "rOEZHxkuQ32CnEL7L5bvLg",
+      "client_id":     "Vfs8em3wQICzeWpsxNVxYw",
+      "client_secret": "HR5GR3V1SuS9JORPA45qM1kV7CLzmA2e"
     }
 
 Usage as a module:

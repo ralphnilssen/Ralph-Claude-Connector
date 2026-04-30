@@ -126,7 +126,7 @@ function bullet(text) {
 // ── Skill table ───────────────────────────────────────────────────────────────
 // rows: array of [skill, rating, observation] strings
 function skillTable(rows) {
-  const COL = [2520, 960, 5880];
+  const COL = [2160, 1440, 5760];
   const headerRow = new TableRow({
     tableHeader: true,
     children: [
@@ -134,38 +134,45 @@ function skillTable(rows) {
         borders, width: { size: COL[0], type: WidthType.DXA },
         shading: { fill: GRAY_LT, type: ShadingType.CLEAR },
         margins: { top: 80, bottom: 80, left: 120, right: 120 },
-        children: [p([run("Skill", { bold: true, size: 18 })])]
+        verticalAlign: VerticalAlign.CENTER,
+        children: [p([run("Skill", { bold: true, size: 18 })], { alignment: AlignmentType.LEFT })]
       }),
       new TableCell({
         borders, width: { size: COL[1], type: WidthType.DXA },
         shading: { fill: GRAY_LT, type: ShadingType.CLEAR },
         margins: { top: 80, bottom: 80, left: 120, right: 120 },
+        verticalAlign: VerticalAlign.CENTER,
         children: [p([run("Rating", { bold: true, size: 18 })], { alignment: AlignmentType.CENTER })]
       }),
       new TableCell({
         borders, width: { size: COL[2], type: WidthType.DXA },
         shading: { fill: GRAY_LT, type: ShadingType.CLEAR },
         margins: { top: 80, bottom: 80, left: 120, right: 120 },
+        verticalAlign: VerticalAlign.CENTER,
         children: [p([run("Key Observation", { bold: true, size: 18 })])]
       }),
     ]
   });
   const dataRows = rows.map(([skill, rating, comment]) =>
     new TableRow({
+      cantSplit: true,
       children: [
         new TableCell({
           borders, width: { size: COL[0], type: WidthType.DXA },
           margins: { top: 80, bottom: 80, left: 120, right: 120 },
-          children: [p([run(skill, { size: 18 })])]
+          verticalAlign: VerticalAlign.CENTER,
+          children: [p([run(skill, { size: 18 })], { alignment: AlignmentType.LEFT })]
         }),
         new TableCell({
           borders, width: { size: COL[1], type: WidthType.DXA },
           margins: { top: 80, bottom: 80, left: 120, right: 120 },
+          verticalAlign: VerticalAlign.CENTER,
           children: [p([run(rating, { bold: true, size: 18 })], { alignment: AlignmentType.CENTER })]
         }),
         new TableCell({
           borders, width: { size: COL[2], type: WidthType.DXA },
           margins: { top: 80, bottom: 80, left: 120, right: 120 },
+          verticalAlign: VerticalAlign.CENTER,
           children: [p([run(comment, { size: 18 })])]
         }),
       ]
@@ -222,12 +229,12 @@ function trendTable(rows, bucketLabels) {
         ...[w1, w2, w3, w4].map((rating, i) => new TableCell({
           borders, width: { size: COL[i + 1], type: WidthType.DXA },
           margins: { top: 80, bottom: 80, left: 60, right: 60 },
-          children: [p([run(rating || "—", { size: 18 })], { alignment: AlignmentType.CENTER })]
+          children: [p([run(rating || "n/a", { size: 18 })], { alignment: AlignmentType.CENTER })]
         })),
         new TableCell({
           borders, width: { size: COL[5], type: WidthType.DXA },
           margins: { top: 80, bottom: 80, left: 120, right: 120 },
-          children: [p([run(trend || "—", { bold: true, size: 18 })], { alignment: AlignmentType.CENTER })]
+          children: [p([run(trend || "n/a", { bold: true, size: 18 })], { alignment: AlignmentType.CENTER })]
         }),
       ]
     });
@@ -500,16 +507,4 @@ const doc = new Document({
     properties: {
       page: {
         size: { width: 12240, height: 15840 },
-        margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 }
-      }
-    },
-    children: CONTENT_ARRAY,
-  }]
-});
-
-const OUTPUT_PATH = '/sessions/wonderful-funny-babbage/DOXA_Sales_Analysis.docx';
-
-Packer.toBuffer(doc).then(buf => {
-  fs.writeFileSync(OUTPUT_PATH, buf);
-  console.log('Done. Output: ' + OUTPUT_PATH);
-}).catch(err => { console.error(err); process.exit(1); });
+        margin:
