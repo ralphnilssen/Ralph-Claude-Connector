@@ -3,7 +3,7 @@ name: linkedin
 description: Write and edit Ralph Nilssen's LinkedIn presence in his voice, including the full profile (About section, headline, experience entries, featured items) and ongoing content (posts, articles, comments). Trigger this skill whenever the user mentions LinkedIn in any drafting, editing, or optimization context, including phrases like "my LinkedIn", "About section", "headline", "LinkedIn post", "LinkedIn article", "optimize my profile", "rewrite my profile", "draft a post", "comment on", or shares a screenshot of a LinkedIn page. Also trigger when the user asks for personal branding copy, thought leadership content, or anything published under Ralph's name on a professional network. Use this skill even when the user does not explicitly say the word "skill".
 ---
 
-# LinkedIn Voice (Ralph Nilssen)
+# LinkedIn Voice and Profile (Ralph Nilssen)
 
 Purpose: produce LinkedIn copy that sounds like Ralph, positions him correctly for his current role, and converts profile visitors and post readers into the right next action.
 
