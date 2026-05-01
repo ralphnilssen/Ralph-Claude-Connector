@@ -2,7 +2,7 @@
 name: MEMORY
 type: agent-memory-root
 owner: Ralph Nilssen
-updated: 2026-04-24
+updated: 2026-05-01
 ---
 
 # Agent memory — Ralph Nilssen
@@ -14,6 +14,10 @@ Before doing any work for Ralph, read `C:\Users\RalphNilssen\Obsidian\Claude\ins
 ## File operation rule
 
 Work out of the Obsidian vault at `C:\Users\RalphNilssen\Obsidian\Claude` (Mac: `/Users/ralph/Documents/Claude`). Save deliverables to `outputs/` or the relevant `Projects/<name>/outputs/`. Do not use the ephemeral session temp folder unless explicitly asked. The vault is kept in sync across machines via Obsidian Sync.
+
+## Sync discipline
+
+Repo lives on both PC (`C:\Users\RalphNilssen\GitHub\Ralph-Claude-Connector`) and Mac (`/Users/ralph/Documents/GitHub/Ralph-Claude-Connector`). Always `git pull` before starting work on either machine. If a git client prompts to force push or shows the working tree wildly diverged from origin, stop and reconcile — do not let it auto-resolve. On 2026-05-01 a misaligned merge produced commit 58012e6 ("Huge commit") that deleted 250+ files across all skills; recovered via revert e70b33e.
 
 ## Notes
 
