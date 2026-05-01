@@ -3,17 +3,14 @@
   "owner": {
     "name": "Ralph Nilssen"
   },
-  "metadata": {
-    "description": "Ralph Nilssen's personal Claude skill library for executive and sales workflows at DOXA Talent.",
-    "version": "1.0.0",
-    "pluginRoot": "."
-  },
+  "description": "Ralph Nilssen's personal Claude skill library for executive and sales workflows at DOXA Talent.",
+  "version": "1.0.1",
   "plugins": [
     {
       "name": "ralph-claude-connector",
       "source": ".",
-      "description": "19 custom skills covering executive writing, sales analysis, LinkedIn drafting, FranHub Q&A, networking prep, and document production.",
-      "version": "1.0.0",
+      "description": "22 custom skills covering executive writing, sales analysis, LinkedIn drafting, FranHub Q&A, networking prep, and document production.",
+      "version": "1.0.1",
       "keywords": ["personal", "executive", "sales", "linkedin", "doxa", "document-production"]
     }
   ]
