@@ -1,11 +1,11 @@
 ---
 name: weekly-executive-summary
-description: "Generate Ralph Nilssen's weekly executive summary and Ninety.io Headlines every Friday. Pulls emails, calendar, OneDrive files, and Zoom recordings from the current week and produces two polished Word documents saved to C:\\Users\\RalphNilssen\\Obsidian\\Claude\\outputs. Trigger this skill whenever Ralph asks for his weekly summary, Friday report, executive update, Ninety headlines, leadership update, or says anything like \"do my weekly,\" \"run the Friday summary,\" \"generate headlines,\" or \"write up my week.\" Trigger on context too, even without explicit naming."
+description: "Generate Ralph Nilssen's weekly executive summary and Ninety.io Headlines every Friday. Pulls emails, calendar, OneDrive files, and Zoom recordings from the current week and produces two polished Word documents saved to /Users/ralph/Documents/Claude/Projects/weekly-executive-summary/. Trigger this skill whenever Ralph asks for his weekly summary, Friday report, executive update, Ninety headlines, leadership update, or says anything like \"do my weekly,\" \"run the Friday summary,\" \"generate headlines,\" or \"write up my week.\" Trigger on context too, even without explicit naming."
 ---
 
 # Weekly Executive Summary and Ninety Headlines
 
-You are generating Ralph Nilssen's (Chief Sales Officer, DOXA Talent) weekly executive summary and Ninety.io headlines every Friday. This must produce two Word documents (.docx) saved to `C:\Users\RalphNilssen\Obsidian\Claude\outputs`.
+You are generating Ralph Nilssen's (Chief Sales Officer, DOXA Talent) weekly executive summary and Ninety.io headlines every Friday. This must produce two Word documents (.docx) saved to `/Users/ralph/Documents/Claude/Projects/weekly-executive-summary/`.
 
 ## STEP 1: Gather Data
 
@@ -101,7 +101,7 @@ Use the docx skill (npm docx library) to create a professionally formatted Word 
 - Sections: Top 10 table, Calendar (non-recurring then recurring), Key Email Threads (with bullet points using bold+normal text), Sent Emails table, Files table
 - Validate using: `python scripts/office/validate.py [filepath]`
 
-Save as: `Weekly_Summary_[date-range].docx`
+Save as: `YYYY-MM-DD-Weekly-Summary-[date-range].docx`
 
 ## STEP 4: Create Ninety.io Headlines (.docx)
 
@@ -166,14 +166,22 @@ Format the document with:
 - Header/footer matching the weekly summary style
 - Validate using: `python scripts/office/validate.py [filepath]`
 
-Save as: `Headlines_Week[N]_[date].docx`
+Save as: `YYYY-MM-DD-Ninety-Headlines-Week[N].docx`
 
 ## STEP 5: Deliver
 
-**Output folder:** `C:\Users\RalphNilssen\Obsidian\Claude`
+**Output folder:** `/Users/ralph/Documents/Claude/Projects/weekly-executive-summary/`
 
-Before writing the output files, connect this folder using `mcp__cowork__request_cowork_directory` with path `C:\Users\RalphNilssen\Obsidian\Claude`. Once connected, it mounts in bash at `/sessions/[session-id]/mnt/Claude/`. Use that bash path when writing files via shell commands or Node.js scripts.
+If the output folder does not exist, create it with `Filesystem:create_directory` before writing.
 
-Save both .docx files to `C:\Users\RalphNilssen\Obsidian\Claude`. Also save copies to the session outputs folder (`/sessions/[session-id]/mnt/outputs/`) as a fallback.
+Save both .docx files to `/Users/ralph/Documents/Claude/Projects/weekly-executive-summary/`. Provide computer:// links using that path. Give a brief summary of what was produced.
 
-Provide computer:// links using the `C:\Users\RalphNilssen\Obsidian\Claude\` path. Give a brief summary of what was produced.
+If a Cowork session is being used (for example because Node.js docx generation requires a mounted directory), connect `/Users/ralph/Documents/Claude/` via `mcp__cowork__request_cowork_directory` and write through the resulting bash mount. Always end by writing the final files to the canonical Projects path above.
+
+---
+
+## File Locations
+
+- Output folder: `/Users/ralph/Documents/Claude/Projects/weekly-executive-summary/`
+- GitHub skill: `/Users/ralph/Documents/GitHub/Ralph-Claude-Connector/skills/weekly-executive-summary/SKILL.md`
+- Obsidian vault root: `/Users/ralph/Documents/Claude/`

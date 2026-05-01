@@ -99,7 +99,7 @@ Wait for confirmation or correction before proceeding.
 Check for existing scorecards in the persistent output folder using the Filesystem tool:
 
 ```
-C:\Users\RalphNilssen\Obsidian\Claude\outputs\sales-analysis\
+/Users/ralph/Documents/Claude/Projects/sales-call-analysis/
 ```
 
 List all `.json` files in that folder. Sort by filename descending (filenames are date-prefixed: `YYYY-MM-DD-scorecard.json`). Read the most recent one.
@@ -471,10 +471,10 @@ Read `scripts/memo_template.js` in this skill's directory for the helper functio
 ### Output filename
 
 ```
-YYYY-MM-DD DOXA Sales Analysis.docx
+YYYY-MM-DD-DOXA-Sales-Analysis.docx
 ```
 
-Example: `2026-04-30 DOXA Sales Analysis.docx`. Use the current date.
+Example: `2026-04-30-DOXA-Sales-Analysis.docx`. Use the current date.
 
 ### Memo structure
 
@@ -629,12 +629,12 @@ Copy the generated `.docx` to `/mnt/user-data/outputs/` and present it via `pres
 
 Also copy the `.docx` to the persistent output folder using the Filesystem tool:
 ```
-C:\Users\RalphNilssen\Obsidian\Claude\outputs\sales-analysis\YYYY-MM-DD DOXA Sales Analysis.docx
+/Users/ralph/Documents/Claude/Projects/sales-call-analysis/YYYY-MM-DD-DOXA-Sales-Analysis.docx
 ```
 
 Then write the scorecard JSON to the same folder:
 ```
-C:\Users\RalphNilssen\Obsidian\Claude\outputs\sales-analysis\YYYY-MM-DD-scorecard.json
+/Users/ralph/Documents/Claude/Projects/sales-call-analysis/YYYY-MM-DD-scorecard.json
 ```
 
 Build the scorecard from the scores collected in Step 9. Use the schema defined in Step 2b. Set `run_date` to today's date, `scope` to the scope string from Step 3, `mode` to the active mode, and include one record per rep with their 8 dimension ratings, 4 bucket ratings, trend values, weekly volume across the last 6 US business weeks, and conversation count. Also write the `roster_filter` block (groups + names) and the `buckets` block (4 date ranges) at the top level. For limited-data reps, set `limited_data: true` and omit `scores`, `bucket_scores`, `trend`, and `weekly_volume`.
@@ -719,3 +719,12 @@ Three sub-sections, 3-5 sentences each, citing rep names and specific call examp
 - Modify team structure (user edits `project_team_structure.json` directly)
 - Score calls flagged as still-processing in ZRA (skipped, surfaced for re-run)
 - Pull comments, scorecards, or CRM associations beyond what is exposed in the deep pull (additional scopes would be required)
+
+---
+
+## File Locations
+
+- Output folder: `/Users/ralph/Documents/Claude/Projects/sales-call-analysis/`
+- Persistent scorecards: `/Users/ralph/Documents/Claude/Projects/sales-call-analysis/YYYY-MM-DD-scorecard.json`
+- GitHub skill: `/Users/ralph/Documents/GitHub/Ralph-Claude-Connector/skills/sales-call-analysis/SKILL.md`
+- Obsidian vault root: `/Users/ralph/Documents/Claude/`

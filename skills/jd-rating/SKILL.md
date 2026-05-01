@@ -1,6 +1,6 @@
 ---
 name: jd-rating
-description: Score and validate job descriptions using the DOXA JD Validation Checklist. Use this skill whenever someone uploads a job description file and asks for it to be rated, reviewed, scored, validated, or checked against the checklist. Also trigger when someone says "rate this JD", "score this job description", "check this JD", "validate this job posting", "run the JD checklist", or uploads a .docx/.pdf/.txt file and asks if it's ready to publish. Supports up to 10 JDs per run and produces one scored Excel file per JD.
+description: Score and validate job descriptions using the DOXA JD Validation Checklist. Use this skill whenever someone uploads a job description file and asks for it to be rated, reviewed, scored, validated, or checked against the checklist. Also trigger when someone says "rate this JD", "score this job description", "check this JD", "validate this job posting", "run the JD checklist", or uploads a .docx/.pdf/.txt file and asks if it's ready to publish. Supports up to 10 JDs per run and produces one scored Excel file per JD saved to /Users/ralph/Documents/Claude/Projects/jd-rating/.
 ---
 
 # JD Rating Skill
@@ -30,10 +30,11 @@ For each uploaded JD file:
    ```bash
    python <skill_dir>/scripts/rate_jd.py /tmp/jd_scores_<slug>.json <output_path>
    ```
-6. **Save the output** to the user's Claude workspace outputs folder using the naming convention:
+6. **Save the output** to `/Users/ralph/Documents/Claude/Projects/jd-rating/` using the naming convention:
    `YYYY-MM-DD-[ClientName]-[RoleTitle]-JD-Rating.xlsx`
    - Spaces in client name or role title → replace with hyphens.
    - Example: `2026-04-25-Absco-Solutions-Accounting-Specialist-JD-Rating.xlsx`
+   - If the output folder is missing, create with `Filesystem:create_directory` first.
 
 After all JDs are processed, summarize results in a table: JD filename, overall rating, Completed/Pending/Rework counts.
 
@@ -184,3 +185,11 @@ After processing all files, produce a summary table in the conversation:
 | File | Client | Role | Rating | Completed | Pending | Rework |
 |------|--------|------|--------|-----------|---------|--------|
 | Absco - Accounting Specialist.docx | Absco Solutions | Accounting Specialist | Not Approved - Reworked | 11 | 2 | 8 |
+
+---
+
+## File Locations
+
+- Output folder: `/Users/ralph/Documents/Claude/Projects/jd-rating/`
+- GitHub skill: `/Users/ralph/Documents/GitHub/Ralph-Claude-Connector/skills/jd-rating/SKILL.md`
+- Obsidian vault root: `/Users/ralph/Documents/Claude/`
