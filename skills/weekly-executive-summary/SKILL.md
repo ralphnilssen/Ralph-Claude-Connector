@@ -154,7 +154,7 @@ Skip the calibration line when the headline is a clean status update with a self
 
 ### Voice and Style Reference
 
-Match the voice, structure, citation style, and length variance shown in `references/voice_examples.md`. Read the full file before drafting headlines. Each example is annotated with role classification, structural pattern (prose, numbered list, or mixed), use of external citations, sign-off pattern, and word count. Length range spans roughly 100 to 600 words depending on subject complexity. Do not pad short topics. Do not compress complex topics.
+Match the voice, structure, citation style, and length variance shown in `/Users/ralph/Documents/Claude/reference/voice-examples-headlines.md`. Read the full file before drafting headlines. Each example is annotated with role classification, structural pattern (prose, numbered list, or mixed), use of external citations, sign-off pattern, and length. Length range spans roughly 150 to 600 words depending on subject complexity. Do not pad short topics. Do not compress complex topics.
 
 ### Document formatting
 
@@ -183,5 +183,6 @@ If a Cowork session is being used (for example because Node.js docx generation r
 ## File Locations
 
 - Output folder: `/Users/ralph/Documents/Claude/Projects/weekly-executive-summary/`
+- Voice reference: `/Users/ralph/Documents/Claude/reference/voice-examples-headlines.md`
 - GitHub skill: `/Users/ralph/Documents/GitHub/Ralph-Claude-Connector/skills/weekly-executive-summary/SKILL.md`
 - Obsidian vault root: `/Users/ralph/Documents/Claude/`
