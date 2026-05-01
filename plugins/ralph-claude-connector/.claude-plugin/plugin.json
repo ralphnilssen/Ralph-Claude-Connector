@@ -1,9 +1,16 @@
 {
-  "name": "ralph-claude-connector",
-  "version": "1.1.0",
-  "description": "Ralph Nilssen's personal Claude skill library. 22 custom skills covering executive writing, sales analysis, LinkedIn drafting, FranHub Q&A, networking prep, and document production (docx, pptx, pdf, xlsx).",
-  "author": {
-    "name": "Ralph Nilssen"
-  },
-  "keywords": ["personal", "executive", "sales", "linkedin", "doxa", "document-production"]
+    "name":  "ralph-claude-connector",
+    "version":  "1.2.0",
+    "description":  "Ralph Nilssen\u0027s personal Claude skill library. 23 custom skills covering executive writing, sales analysis, LinkedIn drafting, FranHub Q\u0026A, networking prep, and document production (docx, pptx, pdf, xlsx).",
+    "author":  {
+                   "name":  "Ralph Nilssen"
+               },
+    "keywords":  [
+                     "personal",
+                     "executive",
+                     "sales",
+                     "linkedin",
+                     "doxa",
+                     "document-production"
+                 ]
 }
