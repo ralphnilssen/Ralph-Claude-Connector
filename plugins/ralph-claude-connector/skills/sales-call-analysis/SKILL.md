@@ -36,7 +36,7 @@ Do not narrate the mode detection.
 
 Read Zoom credentials via the Filesystem tool from:
 ```
-C:\Users\RalphNilssen\Obsidian\Claude\reference\zoom_api.json
+C:\Users\RalphNilssen\iCloudDrive\Documents\Claude\reference\zoom_api.json
 ```
 
 Expected shape:
@@ -49,7 +49,7 @@ Expected shape:
 ```
 
 If the file is missing or any of the three fields is empty, halt and tell the user:
-> "Zoom API credentials not configured. Create `C:\Users\RalphNilssen\Obsidian\Claude\reference\zoom_api.json` with `account_id`, `client_id`, and `client_secret` from the Server-to-Server OAuth app."
+> "Zoom API credentials not configured. Create `C:\Users\RalphNilssen\iCloudDrive\Documents\Claude\reference\zoom_api.json` with `account_id`, `client_id`, and `client_secret` from the Server-to-Server OAuth app."
 
 After reading the credentials, write them to a session-scoped path the helper script can read:
 ```bash
@@ -74,7 +74,7 @@ The helper exposes a `ZoomClient` class and a CLI. The skill primarily uses it a
 The team structure file is the authoritative source regardless of mode. Read it via the Filesystem tool:
 
 ```
-C:\Users\RalphNilssen\Obsidian\Claude\reference\project_team_structure.json
+C:\Users\RalphNilssen\iCloudDrive\Documents\Claude\reference\project_team_structure.json
 ```
 
 If the file is missing or unreadable, ask the user to paste the roster in chat. Do not invent a roster.
@@ -709,7 +709,7 @@ Three sub-sections, 3-5 sentences each, citing rep names and specific call examp
 | VTT transcript fetch returns None | Recording not yet processed, or transcript not enabled for that meeting | Score from meta.json only; note data limitation in rep narrative. |
 | Speaker name in transcript unmatched | Prospect or unknown participant | Treat as external (not internal), keep the call as prospect. |
 | Zero prospect conversations after filter | All conversations were internal/training, or scope too tight | Show the exclusion list and ask whether to reclassify or widen scope. |
-| Team structure file missing from Obsidian | File was deleted or path changed | Ask user to paste the roster in chat; note path is `C:\Users\RalphNilssen\Obsidian\Claude\reference\project_team_structure.json`. |
+| Team structure file missing from Obsidian | File was deleted or path changed | Ask user to paste the roster in chat; note path is `C:\Users\RalphNilssen\iCloudDrive\Documents\Claude\reference\project_team_structure.json`. |
 
 ---
 

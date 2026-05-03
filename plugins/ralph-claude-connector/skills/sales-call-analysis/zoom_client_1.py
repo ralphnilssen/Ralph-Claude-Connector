@@ -36,7 +36,7 @@ import urllib.parse
 import urllib.request
 from typing import Any
 
-CONFIG_PATH_DEFAULT = r"C:\Users\RalphNilssen\Obsidian\Claude\reference\zoom_api.json"
+CONFIG_PATH_DEFAULT = r"C:\Users\RalphNilssen\iCloudDrive\Documents\Claude\reference\zoom_api.json"
 BASE = "https://api.zoom.us/v2"
 TOKEN_URL = "https://zoom.us/oauth/token"
 
