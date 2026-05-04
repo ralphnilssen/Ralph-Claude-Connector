@@ -1,11 +1,11 @@
 ---
 name: weekly-executive-summary
-description: "Generate Ralph Nilssen's weekly executive summary and Ninety.io Headlines every Friday. Pulls emails, calendar, OneDrive files, and Zoom recordings from the current week and produces two polished Word documents saved to /Users/ralph/Documents/Claude/Projects/weekly-executive-summary/. Trigger this skill whenever Ralph asks for his weekly summary, Friday report, executive update, Ninety headlines, leadership update, or says anything like \"do my weekly,\" \"run the Friday summary,\" \"generate headlines,\" or \"write up my week.\" Trigger on context too, even without explicit naming."
+description: "Generate Ralph Nilssen's weekly executive summary and Ninety.io Headlines every Friday. Pulls emails, calendar, OneDrive files, and Zoom recordings from the current week and produces two polished Word documents saved to Ralph's Obsidian Vault under /Projects/weekly-executive-summary/. Trigger this skill whenever Ralph asks for his weekly summary, Friday report, executive update, Ninety headlines, leadership update, or says anything like \"do my weekly,\" \"run the Friday summary,\" \"generate headlines,\" or \"write up my week.\" Trigger on context too, even without explicit naming."
 ---
 
 # Weekly Executive Summary and Ninety Headlines
 
-You are generating Ralph Nilssen's (Chief Sales Officer, DOXA Talent) weekly executive summary and Ninety.io headlines every Friday. This must produce two Word documents (.docx) saved to `/Users/ralph/Documents/Claude/Projects/weekly-executive-summary/`.
+You are generating Ralph Nilssen's (Chief Sales Officer, DOXA Talent) weekly executive summary and Ninety.io headlines every Friday. This must produce two Word documents (.docx) saved to Ralph's Obsidian Vault under `/Projects/weekly-executive-summary/`. Resolve the vault root from the active platform (see File Locations at the bottom of this skill).
 
 ## STEP 1: Gather Data
 
@@ -154,7 +154,7 @@ Skip the calibration line when the headline is a clean status update with a self
 
 ### Voice and Style Reference
 
-Match the voice, structure, citation style, and length variance shown in `/Users/ralph/Documents/Claude/reference/voice-examples-headlines.md`. Read the full file before drafting headlines. Each example is annotated with role classification, structural pattern (prose, numbered list, or mixed), use of external citations, sign-off pattern, and length. Length range spans roughly 150 to 600 words depending on subject complexity. Do not pad short topics. Do not compress complex topics.
+Match the voice, structure, citation style, and length variance shown in the Obsidian Vault file `reference/voice-examples-headlines.md` (Mac: `/Users/ralph/Documents/Claude/reference/voice-examples-headlines.md`; Windows: `C:\Users\RalphNilssen\Documents\Claude\reference\voice-examples-headlines.md`). Read the full file before drafting headlines. Each example is annotated with role classification, structural pattern (prose, numbered list, or mixed), use of external citations, sign-off pattern, and length. Length range spans roughly 150 to 600 words depending on subject complexity. Do not pad short topics. Do not compress complex topics.
 
 ### Document formatting
 
@@ -170,19 +170,26 @@ Save as: `YYYY-MM-DD-Ninety-Headlines-Week[N].docx`
 
 ## STEP 5: Deliver
 
-**Output folder:** `/Users/ralph/Documents/Claude/Projects/weekly-executive-summary/`
+**Output folder:** Ralph's Obsidian Vault, subfolder `/Projects/weekly-executive-summary/`.
+
+Resolve the vault root for the active platform:
+
+- Mac: `/Users/ralph/Documents/Claude/`
+- Windows: `C:\Users\RalphNilssen\Documents\Claude\`
 
 If the output folder does not exist, create it with `Filesystem:create_directory` before writing.
 
-Save both .docx files to `/Users/ralph/Documents/Claude/Projects/weekly-executive-summary/`. Provide computer:// links using that path. Give a brief summary of what was produced.
+Save both .docx files to `<vault root>/Projects/weekly-executive-summary/`. Provide `computer://` links using the resolved absolute path. Give a brief summary of what was produced.
 
-If a Cowork session is being used (for example because Node.js docx generation requires a mounted directory), connect `/Users/ralph/Documents/Claude/` via `mcp__cowork__request_cowork_directory` and write through the resulting bash mount. Always end by writing the final files to the canonical Projects path above.
+If a Cowork session is being used (for example because Node.js docx generation requires a mounted directory), connect the vault root via `mcp__cowork__request_cowork_directory` (use the platform-appropriate path above) and write through the resulting bash mount. Always end by writing the final files to the canonical `<vault root>/Projects/weekly-executive-summary/` path.
 
 ---
 
 ## File Locations
 
-- Output folder: `/Users/ralph/Documents/Claude/Projects/weekly-executive-summary/`
-- Voice reference: `/Users/ralph/Documents/Claude/reference/voice-examples-headlines.md`
-- GitHub skill: `/Users/ralph/Documents/GitHub/Ralph-Claude-Connector/skills/weekly-executive-summary/SKILL.md`
-- Obsidian vault root: `/Users/ralph/Documents/Claude/`
+- Obsidian Vault root (Mac): `/Users/ralph/Documents/Claude/`
+- Obsidian Vault root (Windows): `C:\Users\RalphNilssen\Documents\Claude\`
+- Output folder: `<vault root>/Projects/weekly-executive-summary/`
+- Voice reference: `<vault root>/reference/voice-examples-headlines.md`
+- GitHub skill (Mac): `/Users/ralph/Documents/GitHub/Ralph-Claude-Connector/plugins/ralph-claude-connector/skills/weekly-executive-summary/SKILL.md`
+- GitHub skill (Windows): `C:\Users\RalphNilssen\GitHub\Ralph-Claude-Connector\plugins\ralph-claude-connector\skills\weekly-executive-summary\SKILL.md`
